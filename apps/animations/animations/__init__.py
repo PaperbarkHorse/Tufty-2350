@@ -64,4 +64,17 @@ animations = [
             },
         ],
     },
+    {
+        "name": "Plink",
+        "framerate": 12,
+        "hires": False,
+        "sprites": [
+            {
+                "path": "animations/Plink.png",
+                "width": 12,
+                "height": 2,
+                "frames": 24,
+            },
+        ],
+    },
 ]
