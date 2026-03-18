@@ -39,19 +39,6 @@ animations = [
         ],
     },
     {
-        "name": "Castle Wave",
-        "framerate": 30,
-        "hires": False,
-        "sprites": [
-            {
-                "path": "animations/Castle Wave.png",
-                "width": 12,
-                "height": 10,
-                "frames": 119,
-            },
-        ],
-    },
-    {
         "name": "Flutter Bop",
         "framerate": 24,
         "hires": False,
