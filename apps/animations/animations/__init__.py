@@ -39,6 +39,19 @@ animations = [
         ],
     },
     {
+        "name": "Flutter Bop",
+        "framerate": 24,
+        "hires": False,
+        "sprites": [
+            {
+                "path": "animations/Flutter Dance.png",
+                "width": 12,
+                "height": 3,
+                "frames": 31,
+            },
+        ],
+    },
+    {
         "name": "Card Trix",
         "framerate": 24,
         "hires": False,
