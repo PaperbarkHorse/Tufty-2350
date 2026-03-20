@@ -26,19 +26,6 @@ animations = [
         ],
     },
     {
-        "name": "Funky Town",
-        "framerate": 30,
-        "hires": False,
-        "sprites": [
-            {
-                "path": "animations/Funky Town.png",
-                "width": 12,
-                "height": 3,
-                "frames": 30,
-            },
-        ],
-    },
-    {
         "name": "Flutter Bop",
         "framerate": 24,
         "hires": False,
@@ -48,6 +35,32 @@ animations = [
                 "width": 12,
                 "height": 4,
                 "frames": 38,
+            },
+        ],
+    },
+    {
+        "name": "Card Trix",
+        "framerate": 24,
+        "hires": False,
+        "sprites": [
+            {
+                "path": "animations/Card Trix.png",
+                "width": 12,
+                "height": 4,
+                "frames": 40,
+            },
+        ],
+    },
+    {
+        "name": "Funky Town",
+        "framerate": 30,
+        "hires": False,
+        "sprites": [
+            {
+                "path": "animations/Funky Town.png",
+                "width": 12,
+                "height": 3,
+                "frames": 30,
             },
         ],
     },
