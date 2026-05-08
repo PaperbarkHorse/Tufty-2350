@@ -2,6 +2,7 @@ import math
 import gc
 from animations import animations
 import toast
+import system
 
 hires = False
 
@@ -18,6 +19,10 @@ def init():
     load_animation(animations[0])
 
 def input():
+    if badge.pressed(BUTTON_B):
+        system.lock_input()
+        return
+    
     if badge.pressed(BUTTON_UP):
         prev_animation()
 
