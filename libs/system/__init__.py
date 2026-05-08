@@ -14,7 +14,7 @@ state = {
     "super_dim": False
 }
 
-background_image = image.load("/system/assets/images/background.png")
+background_image = None
 
 app_menu = None
 system_menu = None
@@ -125,6 +125,10 @@ def init_app_menu():
 
 # ===== Init ===== #
 def init():
+    global background_image
+
     load_state()
     set_backlight()
     init_app_menu()
+
+    background_image = image.load("/system/assets/images/background.png")
