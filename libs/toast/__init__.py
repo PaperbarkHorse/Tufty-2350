@@ -2,6 +2,7 @@ import math
 
 TOP = 1
 BOTTOM = 2
+CENTER = 3
 
 SHORT = 1250
 LONG = 4000
@@ -28,6 +29,11 @@ def update():
         render()
 
 def render():
+    if screen.width == 320:
+        screen.font = rom_font.ignore
+    else:
+        screen.font = rom_font.sins
+
     width, height = screen.measure_text(toast_text)
     height += 1
     x = math.floor((screen.width - width) / 2)
@@ -36,6 +42,8 @@ def render():
         y = 5
     elif toast_position == BOTTOM:
         y = screen.height - height - 5
+    elif toast_position == CENTER:
+        y = math.floor((screen.height - height) / 2)
 
     alpha = max(0, min(1, toast_lifetime / 333))
 

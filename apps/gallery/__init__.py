@@ -4,7 +4,6 @@ import math
 from badgeware import State
 
 import toast
-import system_ui
 
 sys.path.insert(0, "/system/apps/gallery")
 os.chdir("/system/apps/gallery")
@@ -21,8 +20,6 @@ image_paths = []
 
 current_index = 0
 current_image = None
-
-locked = False
 
 should_render = True
 
@@ -42,40 +39,14 @@ def init():
         except ValueError:
             change_image(image_paths[0])
 
-def update():
-    global image_paths, current_image, locked, should_render
-
-    if should_render:
-        render()
-        should_render = False
-
-    if toast.toast_lifetime > 0:
-        should_render = True
-    
-    screen.font = rom_font.ignore
-    toast.update()
-    
-    if badge.pressed(BUTTON_B):
-        locked = not locked
-        if locked:
-            toast.show("Locked", duration=toast.SHORT, position=toast.BOTTOM)
-        else:
-            toast.show("Unlocked", duration=toast.SHORT, position=toast.BOTTOM)
-
-
+def input():
     if badge.pressed(BUTTON_A) or badge.pressed(BUTTON_UP):
-        if not locked:
-            prev_image()
-        else:
-            toast.show("Press B to unlock", duration=toast.SHORT, position=toast.BOTTOM)
+        prev_image()
 
     if badge.pressed(BUTTON_C) or badge.pressed(BUTTON_DOWN):
-        if not locked:
-            next_image()
-        else:
-            toast.show("Press B to unlock", duration=toast.SHORT, position=toast.BOTTOM)
+        next_image()
 
-def render():
+def update():
     screen.font = rom_font.ignore
 
     screen.pen = color.rgb(0, 0, 0)

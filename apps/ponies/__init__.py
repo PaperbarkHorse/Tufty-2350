@@ -14,14 +14,8 @@ def init():
     world.spawn_pony(vinyl_scratch)
     world.spawn_pony(cocoa_butter)
 
-def update():
-    global world, debug, debug_target_pony
-    
-    world.update()
-    world.render()
-
-    if debug:
-        render_debug()
+def input():
+    global debug, debug_target_pony, world
 
     if badge.pressed(BUTTON_B):
         debug = not debug   
@@ -35,6 +29,13 @@ def update():
         debug_target_pony += 1
         if debug_target_pony >= len(world.ponies):
             debug_target_pony = 0
+
+def update():
+    world.update()
+    world.render()
+
+    if debug:
+        render_debug()
 
 def render_debug():
     global debug_target_pony

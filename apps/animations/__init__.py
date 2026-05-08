@@ -12,56 +12,25 @@ animation_sprites = []
 animation_start_time = 0
 animation_total_frames = 0
 
-locked = False
 playback_speed = 1
 
 def init():
     load_animation(animations[0])
 
-def update():
-    global locked
-
-    render_animation()
-
-    if hires:
-        screen.font = rom_font.ignore
-    else:
-        screen.font = rom_font.sins
-
-    toast.update()
-
+def input():
     if badge.pressed(BUTTON_UP):
-        if not locked:
-            prev_animation()
-        else:
-            toast.show("Press B to unlock", duration=toast.SHORT, position=toast.BOTTOM)
+        prev_animation()
 
     if badge.pressed(BUTTON_DOWN):
-        if not locked:
-            next_animation()
-        else:
-            toast.show("Press B to unlock", duration=toast.SHORT, position=toast.BOTTOM)
+        next_animation()
 
     if badge.pressed(BUTTON_A):
-        if not locked:
-            set_speed(playback_speed - 0.1)
-        else:
-            toast.show("Press B to unlock", duration=toast.SHORT, position=toast.BOTTOM)
+        set_speed(playback_speed - 0.1)
 
     if badge.pressed(BUTTON_C):
-        if not locked:
-            set_speed(playback_speed + 0.1)
-        else:
-            toast.show("Press B to unlock", duration=toast.SHORT, position=toast.BOTTOM)
+        set_speed(playback_speed + 0.1)
 
-    if badge.pressed(BUTTON_B):
-        locked = not locked
-        if locked:
-            toast.show("Locked", duration=toast.SHORT, position=toast.BOTTOM)
-        else:
-            toast.show("Unlocked", duration=toast.SHORT, position=toast.BOTTOM)
-
-def render_animation():
+def update():
     if current_animation == None:
         return
     

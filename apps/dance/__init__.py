@@ -4,7 +4,6 @@ import math
 import random
 
 import toast
-import system_ui
 
 from scenes import scenes
 from characters import characters
@@ -35,15 +34,7 @@ def init():
     load_character(characters[current_character_index])
     load_animation(current_character.animations[current_animation_index])
 
-def update():
-    global current_animation_index, current_animation_sprites, animation_start_time
-
-    update_auto_cycle()
-    render()
-
-    toast.update()
-    system_ui.update()
-
+def input():
     if badge.pressed(BUTTON_A):
         set_auto_cycle(not auto_cycle)
 
@@ -64,6 +55,9 @@ def update():
     if badge.pressed(BUTTON_DOWN):
         next_animation()
 
+def update():
+    update_auto_cycle()
+    render()
 
 def render():
     global message_timer

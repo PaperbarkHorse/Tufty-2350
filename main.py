@@ -3,28 +3,37 @@ from badgeware import fatal_error
 try:
     import sys
     import os
-    from badgeware import display, DEFAULT_FONT, State
+    from badgeware import display, DEFAULT_FONT
     import machine
     import gc
 
-    system_state = {
-        "backlight": 0.5,
-        "launch_app": None,
-    }
-    State.load("quasar.system", system_state)
+    sys.path.append("/system/libs")
+    import system
+    import menu
+    import toast
 
-    display.backlight(system_state["backlight"])
+    system.load_state()
+    system.set_backlight()
 
     badge.default_clear = None
     badge.mode(LORES)
 
+    badge.poll()
+    if badge.held(BUTTON_HOME):
+        system.set_boot_to_launcher()
+        system.set_input_locked(False)
+        system.set_super_dim(False)
+
+        screen.pen = color.rgb(255, 0, 0)
+        screen.clear()
+        display.update()
+        
+        while badge.held(BUTTON_HOME):
+            badge.poll()
+
     screen.pen = color.rgb(0, 0, 0)
     screen.clear()
     display.update()
-
-    standard_modules = list(sys.modules.keys())
-
-    sys.path.append("/system/libs")
 
     def run(app):
         try:
@@ -35,7 +44,10 @@ try:
 
             init = getattr(app, "init", None)
             update = getattr(app, "update")
+            input = getattr(app, "input", None)
             on_exit = getattr(app, "on_exit", None)
+
+            home_hold_start = None
 
             if init:
                 init()
@@ -44,13 +56,47 @@ try:
 
             while result == None:
                 badge.poll()
+
+                if badge.pressed(BUTTON_HOME):
+                    home_hold_start = badge.ticks
+
+                    if system.app_menu:
+                        if menu.manager.get_active_panel():
+                            menu.manager.close_all()
+                        elif not system.is_input_locked():
+                            system.app_menu.open()
+
+                if badge.held(BUTTON_HOME) and system.is_input_locked() and home_hold_start != None and badge.ticks > home_hold_start + 1000:
+                    system.set_input_locked(False)
+                    toast.show("Input unlocked", toast.SHORT, toast.CENTER)
+
+                if menu.manager.panel_active:
+                    menu.manager.input()
+                else:
+                    if system.is_input_locked():
+                        if badge.pressed():
+                            toast.show("Hold HOME to unlock", toast.SHORT, toast.CENTER)
+                    else:
+                        if input:
+                            input()
+
                 result = update()
 
-                # screen.pen = color.rgb(0, 0, 0)
-                # screen.rectangle(0, 0, 40, 15)
-                # screen.font = DEFAULT_FONT
-                # screen.pen = color.rgb(255, 255, 255)
-                # screen.text(f"{1000 / badge.ticks_delta:.1f}", 2, 0)
+                if menu.manager.panel_active:
+                    menu.manager.render()
+                
+                toast.update()
+
+                if system.is_fps_overlay_enabled():
+                    screen.pen = color.rgb(0, 0, 0, 200)
+                    screen.rectangle(0, 0, 40, 15)
+                    screen.font = DEFAULT_FONT
+                    screen.pen = color.rgb(255, 255, 255)
+                    screen.text(f"{1000 / badge.ticks_delta:.1f}", 2, 0)
+
+                if system.is_super_dim_enabled():
+                    screen.pen = color.rgb(0, 0, 0, 160)
+                    screen.rectangle(0, 0, screen.width, screen.height)
 
                 display.update()
 
@@ -61,16 +107,12 @@ try:
 
         except Exception as e:
             if not badge.usb_connected():
-                State.load("quasar.system", system_state)
-                system_state["launch_app"] = None
-                State.save("quasar.system", system_state)
+                system.set_boot_to_launcher()
 
             fatal_error("App Error", e)
 
-    def quit_to_launcher(pin):
-        State.load("quasar.system", system_state)
-        system_state["launch_app"] = None
-        State.save("quasar.system", system_state)
+    def home_button_interrupt(pin):
+        system.set_boot_to_launcher()
         
         while not pin.value():
             pass
@@ -78,8 +120,9 @@ try:
         machine.reset()
 
 
+    app = system.get_boot_app_path()
 
-    app = system_state["launch_app"]
+    system.init_app_menu()
 
     if app == None:
         try:
@@ -95,28 +138,22 @@ try:
         
         del launcher
 
-
-    for key, _module in sys.modules.items():
-        if key not in standard_modules:
-            del sys.modules[key]
-
     gc.collect()
 
     if app is None:
         fatal_error("App Launching Error", "Launcher did not provide an app to run")
 
-    State.load("quasar.system", system_state)
-    system_state["launch_app"] = app
-    State.save("quasar.system", system_state)
+    system.set_boot_to_app(app)
 
     badge.poll()
     badge.poll()
+
     while badge.held():
         badge.poll()
 
-    machine.Pin.board.BUTTON_HOME.irq(
-        trigger=machine.Pin.IRQ_FALLING, handler=quit_to_launcher
-    )
+    # machine.Pin.board.BUTTON_HOME.irq(
+    #     trigger=machine.Pin.IRQ_FALLING, handler=home_button_interrupt
+    # )
 
     sys.path.insert(0, app)
 
@@ -124,10 +161,7 @@ try:
         os.chdir(app)
         running_app = __import__(app)
     except Exception as e:
-        State.load("quasar.system", system_state)
-        system_state["launch_app"] = None
-        State.save("quasar.system", system_state)
-        
+        system.set_boot_to_launcher()        
         fatal_error("App Launching Error", e)
 
     run(running_app)

@@ -9,14 +9,15 @@ screen.font = rom_font.ark
 
 # find installed apps and create apps
 apps = Apps("/system/apps")
+app_to_launch = None
 
 active = 0
 
 badge.poll()
 
-def update():
-    global active, apps
-
+def input():
+    global active, apps, app_to_launch
+    
     # process button inputs to switch between apps
     if badge.pressed(BUTTON_C):
         if (active % 3) < 2 and active < len(apps) - 1:
@@ -31,10 +32,16 @@ def update():
         if active >= len(apps):
             active = len(apps) - 1
 
+    if badge.pressed(BUTTON_B):
+        app_to_launch = f"/system/apps/{apps.active.path}"
+
+def update():
+    global active, apps
+
     apps.activate(active)
 
-    if badge.pressed(BUTTON_B):
-        return f"/system/apps/{apps.active.path}"
+    if app_to_launch:
+        return app_to_launch
 
     ui.draw_background()
     ui.draw_header()
