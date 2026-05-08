@@ -91,11 +91,29 @@ try:
                 toast.update()
 
                 if system.is_fps_overlay_enabled():
+                    fps = 1000 / badge.ticks_delta
+
+                    if screen.width == 320:
+                        screen.font = rom_font.ignore
+                    else:
+                        screen.font = rom_font.torch
+
+                    fps_overlay_text = f"{fps:.1f}"
+                    fps_overlay_w, fps_overlay_h = screen.measure_text(fps_overlay_text)
+
                     screen.pen = color.rgb(0, 0, 0, 200)
-                    screen.rectangle(0, 0, 40, 15)
+                    screen.rectangle(0, 0, fps_overlay_w + 4, fps_overlay_h + 2)
+
+                    if fps >= 24:
+                        screen.pen = color.rgb(100, 255, 100)
+                    elif fps >= 12:
+                        screen.pen = color.rgb(255, 200, 100)
+                    else:
+                        screen.pen = color.rgb(255, 100, 100)
+
+                    screen.text(fps_overlay_text, 2, 1)
+
                     screen.font = DEFAULT_FONT
-                    screen.pen = color.rgb(255, 255, 255)
-                    screen.text(f"{1000 / badge.ticks_delta:.1f}", 2, 0)
 
                 if system.is_super_dim_enabled():
                     screen.pen = color.rgb(0, 0, 0, 160)
