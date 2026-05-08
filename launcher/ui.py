@@ -1,6 +1,5 @@
 import math
-
-background_image = image.load("/system/assets/images/background.png")
+import system
 
 black = color.rgb(0, 0, 0)
 background = color.rgb(60, 15, 10)
@@ -10,9 +9,10 @@ def draw_background():
     screen.pen = color.rgb(0, 0, 0)
     screen.clear()
 
-    screen.alpha = 128
-    screen.blit(background_image, vec2(0, 0))
-    screen.alpha = 255
+    if system.background_image:
+        screen.alpha = 128
+        screen.blit(system.background_image, vec2(0, 0))
+        screen.alpha = 255
 
 def draw_header():
     battery_level = badge.battery_level()

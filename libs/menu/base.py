@@ -1,11 +1,13 @@
 from badgeware import DEFAULT_FONT
 import math
+import system
 
 class MenuManager:
 
     def __init__(self):
         self.active_panels = []
         self.panel_active = False
+        self.was_hires_mode = None
 
     def input(self):
         panel = self.get_active_panel()
@@ -21,13 +23,31 @@ class MenuManager:
         if panel == None:
             return
 
-        self.get_active_panel().render()
+        panel.render()
 
         screen.font = DEFAULT_FONT
 
-    def open(self, panel):
-        self.active_panels.append(panel)
+    def on_first_panel_open(self):
         self.panel_active = True
+
+        self.was_hires_mode = screen.width == 320
+
+        if self.was_hires_mode:
+            badge.mode(LORES)
+
+    def on_last_panel_close(self):
+        self.panel_active = False
+
+        if self.was_hires_mode:
+            badge.mode(HIRES)
+
+        self.was_hires_mode = None
+
+    def open(self, panel):
+        if len(self.active_panels) == 0:
+            self.on_first_panel_open()
+
+        self.active_panels.append(panel)
         panel.on_open()
 
     def close(self):
@@ -38,7 +58,7 @@ class MenuManager:
         panel.on_close()
 
         if len(self.active_panels) == 0:
-            self.panel_active = False
+            self.on_last_panel_close()
 
     def close_all(self):
         while len(self.active_panels) > 0:
@@ -110,8 +130,13 @@ class Menu(Panel):
 
 
     def render(self):
-        screen.pen = color.rgb(0, 0, 0, 180)
-        screen.rectangle(0, 0, screen.width, screen.height)
+        screen.pen = color.rgb(0, 0, 0)
+        screen.clear()
+
+        if system.background_image:
+            screen.alpha = 50
+            screen.blit(system.background_image, vec2(0, 0))
+            screen.alpha = 255
 
         selected_item = self.get_selected_item()
         y = 0
@@ -129,10 +154,14 @@ class Menu(Panel):
         if selected_item != None:
             scroll_offset = math.floor((screen.height / 2 - selected_item.y) - (selected_item.height / 2))
 
-        scroll_offset = math.floor(min(max(scroll_offset, screen.height - y), 0))
+        scroll_offset = math.floor(min(max(scroll_offset, screen.height - y - 5), 0))
 
         for index, item in enumerate(self.items):
             selected = index == self.selected_index
+
+            if item.y + item.height + scroll_offset < 0 or item.y + scroll_offset > screen.height:
+                continue
+            
             item.render(item.x, item.y + scroll_offset, item.width, item.height, selected)
 
     def add_item(self, item, index=None):

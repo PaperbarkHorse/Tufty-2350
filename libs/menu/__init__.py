@@ -6,3 +6,4 @@ from menu.items.label import *
 from menu.items.spacer import *
 from menu.items.subpanel import *
 from menu.panels.backlight_config import *
+from menu.panels.confirm import *

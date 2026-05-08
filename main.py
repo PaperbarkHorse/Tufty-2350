@@ -12,8 +12,7 @@ try:
     import menu
     import toast
 
-    system.load_state()
-    system.set_backlight()
+    system.init()
 
     badge.default_clear = None
     badge.mode(LORES)
@@ -55,6 +54,8 @@ try:
             result = None
 
             while result == None:
+                should_update = True
+
                 badge.poll()
 
                 if badge.pressed(BUTTON_HOME):
@@ -71,6 +72,7 @@ try:
                     toast.show("Input unlocked", toast.SHORT, toast.CENTER)
 
                 if menu.manager.panel_active:
+                    should_update = False
                     menu.manager.input()
                 else:
                     if system.is_input_locked():
@@ -80,7 +82,8 @@ try:
                         if input:
                             input()
 
-                result = update()
+                if should_update:
+                    result = update()
 
                 if menu.manager.panel_active:
                     menu.manager.render()
@@ -121,8 +124,6 @@ try:
 
 
     app = system.get_boot_app_path()
-
-    system.init_app_menu()
 
     if app == None:
         try:

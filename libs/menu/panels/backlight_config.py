@@ -1,12 +1,7 @@
-from badgeware import DEFAULT_FONT
-import math
 from menu.base import Panel
 import system
 
 class BacklightConfigPanel(Panel):
-
-    def factory():
-        return BacklightConfigPanel()
     
     def __init__(self):
         self.items = []
@@ -28,6 +23,9 @@ class BacklightConfigPanel(Panel):
             self.close()
 
     def render(self):
+        if system.background_image:
+            screen.blit(system.background_image, rect(0, 0, screen.width, screen.height))
+
         screen.pen = color.rgb(0, 0, 0)
         screen.rectangle(1, 1, screen.width - 2, 16)
 

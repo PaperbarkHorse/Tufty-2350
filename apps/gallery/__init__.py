@@ -10,7 +10,7 @@ os.chdir("/system/apps/gallery")
 
 APP_ID = "quasar.gallery"
 
-badge.mode(HIRES | VSYNC)
+badge.mode(HIRES)
 
 state = {
     "recent_image_path": None,
