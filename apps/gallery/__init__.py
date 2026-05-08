@@ -4,6 +4,7 @@ import math
 from badgeware import State
 
 import toast
+import system
 
 sys.path.insert(0, "/system/apps/gallery")
 os.chdir("/system/apps/gallery")
@@ -40,6 +41,10 @@ def init():
             change_image(image_paths[0])
 
 def input():
+    if badge.pressed(BUTTON_B):
+        system.lock_input()
+        return
+
     if badge.pressed(BUTTON_A) or badge.pressed(BUTTON_UP):
         prev_image()
 
