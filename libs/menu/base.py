@@ -134,7 +134,7 @@ class Menu(Panel):
         screen.clear()
 
         if system.background_image:
-            screen.alpha = 50
+            screen.alpha = 70
             screen.blit(system.background_image, vec2(0, 0))
             screen.alpha = 255
 
