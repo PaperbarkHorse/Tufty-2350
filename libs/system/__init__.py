@@ -1,6 +1,7 @@
 from badgeware import State, display
 import machine
 import powman
+import json
 
 import menu
 import toast
@@ -15,6 +16,9 @@ state = {
 }
 
 background_image = None
+
+app_path = None
+app_metadata = None
 
 app_menu = None
 system_menu = None
@@ -95,6 +99,22 @@ def launch_app(app_path):
 def launch_usb_disk_mode():
     import _msc.py
 
+def is_app_running():
+    return app_path != None
+
+def load_app_metadata(app_path):
+    global app_metadata
+
+    try:
+        with open(app_path + "/app.json") as file:
+            app_metadata = json.load(file)
+    except:
+        pass
+
+def on_before_app_launch(app_path):
+    load_app_metadata(app_path)
+    init_app_menu()
+
 # ===== App Menu ===== #
 def init_app_menu():
     global app_menu
@@ -103,7 +123,11 @@ def init_app_menu():
     app_menu = menu.Menu()
     system_menu = menu.Menu()
 
-    app_menu.add_item(menu.Header("Main Menu")) # TODO: Populate with app name from metadata
+    if app_metadata != None and "name" in app_metadata:
+        app_menu.add_item(menu.Header(app_metadata["name"]))
+    else:
+        app_menu.add_item(menu.Header("Main Menu"))
+
     app_menu.add_item(menu.Button("Back", app_menu.close))
     app_menu.add_item(menu.Button("Settings"))
     app_menu.add_item(menu.Subpanel("System", system_menu))

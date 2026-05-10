@@ -174,10 +174,12 @@ try:
     #     trigger=machine.Pin.IRQ_FALLING, handler=home_button_interrupt
     # )
 
-    sys.path.insert(0, app)
-
     try:
+        sys.path.insert(0, app)
         os.chdir(app)
+
+        system.on_before_app_launch(app)
+
         running_app = __import__(app)
     except Exception as e:
         system.set_boot_to_launcher()        
