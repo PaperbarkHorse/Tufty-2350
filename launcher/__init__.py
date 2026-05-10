@@ -1,6 +1,3 @@
-import os
-import sys
-
 import ui
 from app import Apps
 
