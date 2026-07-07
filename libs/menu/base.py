@@ -102,8 +102,10 @@ class Menu(Panel):
     def __init__(self):
         self.items = []
         self.selected_index = None
+        self.scroll_animation_offset = 0
 
     def on_open(self):
+        self.scroll_animation_offset = 0
         self.selected_index = None
         self.select_next_item()
 
@@ -149,12 +151,15 @@ class Menu(Panel):
 
             y += height
 
-        scroll_offset = 0
+        scroll_animation_target = 0
 
         if selected_item != None:
-            scroll_offset = math.floor((screen.height / 2 - selected_item.y) - (selected_item.height / 2))
+            scroll_animation_target = math.floor((screen.height / 2 - selected_item.y) - (selected_item.height / 2))
 
-        scroll_offset = math.floor(min(max(scroll_offset, screen.height - y - 5), 0))
+        scroll_animation_target = math.floor(min(max(scroll_animation_target, screen.height - y - 5), 0))
+
+        self.scroll_animation_offset += (scroll_animation_target - self.scroll_animation_offset) * 10 * (badge.ticks_delta / 1000)
+        scroll_offset = round(self.scroll_animation_offset)
 
         for index, item in enumerate(self.items):
             selected = index == self.selected_index
