@@ -111,6 +111,15 @@ def init():
             .add_option("wipe_left", "Wipe (Left)")
             .add_option("wipe_right", "Wipe (Right)")
             .add_option("wipe_random", "Wipe (Random)")
+            .add_option("zoom_in", "Zoom (In)")
+            .add_option("zoom_out", "Zoom (Out)")
+            .add_option("zoom_random", "Zoom (Random)")
+            .add_option("flip_horizontal", "Flip (Horizontal)")
+            .add_option("flip_vertical", "Flip (Vertical)")
+            .add_option("flip_random", "Flip (Random)")
+            .add_option("barn_door_open", "Barn Door (Open)")
+            .add_option("barn_door_close", "Barn Door (Close)")
+            .add_option("barn_door_random", "Barn Door (Random)")
             .add_option("random", "Random")
     )
     settings.add_item(
@@ -249,68 +258,133 @@ def update_slide():
         if not (badge.mode() & LORES):
             badge.mode(LORES)
 
-        transition_delta = (badge.ticks - transition_start_time) / (transition_end_time - transition_start_time)
-        transition_delta = min(transition_delta, 1.0)
+        t = (badge.ticks - transition_start_time) / (transition_end_time - transition_start_time)
+        t = min(t, 1.0)
 
         if transition_style == "fade":
             if current_slide_image != None:
                 screen.blit(current_slide_image["lores"], vec2(0, 0))
 
-            screen.alpha = round(transition_delta * 255)
+            screen.alpha = round(t * 255)
             screen.blit(next_slide_image["lores"], vec2(0, 0))
             screen.alpha = 255
 
         if transition_style == "slide_up":
             if current_slide_image != None:
-                screen.blit(current_slide_image["lores"], vec2(0, transition_delta * -screen.height))
+                screen.blit(current_slide_image["lores"], vec2(0, t * -screen.height))
             
-            screen.blit(next_slide_image["lores"], vec2(0, (1 - transition_delta) * screen.height))
+            screen.blit(next_slide_image["lores"], vec2(0, (1 - t) * screen.height))
 
         if transition_style == "slide_down":
             if current_slide_image != None:
-                screen.blit(current_slide_image["lores"], vec2(0, transition_delta * screen.height))
+                screen.blit(current_slide_image["lores"], vec2(0, t * screen.height))
             
-            screen.blit(next_slide_image["lores"], vec2(0, (1 - transition_delta) * -screen.height))
+            screen.blit(next_slide_image["lores"], vec2(0, (1 - t) * -screen.height))
 
         if transition_style == "slide_left":
             if current_slide_image != None:
-                screen.blit(current_slide_image["lores"], vec2(transition_delta * -screen.width, 0))
+                screen.blit(current_slide_image["lores"], vec2(t * -screen.width, 0))
             
-            screen.blit(next_slide_image["lores"], vec2((1 - transition_delta) * screen.width, 0))
+            screen.blit(next_slide_image["lores"], vec2((1 - t) * screen.width, 0))
 
         if transition_style == "slide_right":
             if current_slide_image != None:
-                screen.blit(current_slide_image["lores"], vec2(transition_delta * screen.width, 0))
+                screen.blit(current_slide_image["lores"], vec2(t * screen.width, 0))
             
-            screen.blit(next_slide_image["lores"], vec2((1 - transition_delta) * -screen.width, 0))
+            screen.blit(next_slide_image["lores"], vec2((1 - t) * -screen.width, 0))
 
         if transition_style == "wipe_down":
             if current_slide_image != None:
                 screen.blit(current_slide_image["lores"], vec2(0, 0))
             
-            wipe_area = rect(0, 0, screen.width, transition_delta * screen.height)
+            wipe_area = rect(0, 0, screen.width, t * screen.height)
             screen.blit(next_slide_image["lores"], wipe_area, wipe_area)
 
         if transition_style == "wipe_up":
             if current_slide_image != None:
                 screen.blit(current_slide_image["lores"], vec2(0, 0))
             
-            wipe_area = rect(0, (1 - transition_delta) * screen.height, screen.width, transition_delta * screen.height)
+            wipe_area = rect(0, (1 - t) * screen.height, screen.width, t * screen.height)
             screen.blit(next_slide_image["lores"], wipe_area, wipe_area)
 
         if transition_style == "wipe_right":
             if current_slide_image != None:
                 screen.blit(current_slide_image["lores"], vec2(0, 0))
             
-            wipe_area = rect(0, 0, transition_delta * screen.width, screen.height)
+            wipe_area = rect(0, 0, t * screen.width, screen.height)
             screen.blit(next_slide_image["lores"], wipe_area, wipe_area)
 
         if transition_style == "wipe_left":
             if current_slide_image != None:
                 screen.blit(current_slide_image["lores"], vec2(0, 0))
             
-            wipe_area = rect((1 - transition_delta) * screen.width, 0, transition_delta * screen.width, screen.height)
+            wipe_area = rect((1 - t) * screen.width, 0, t * screen.width, screen.height)
             screen.blit(next_slide_image["lores"], wipe_area, wipe_area)
+        
+        if transition_style == "zoom_in":
+            if current_slide_image != None:
+                screen.blit(current_slide_image["lores"], vec2(0, 0))
+
+            screen.blit(next_slide_image["lores"], rect((1 - t) * screen.width / 2, (1 - t) * screen.height / 2, screen.width * t, screen.height * t))
+        
+        if transition_style == "zoom_out":
+            screen.blit(next_slide_image["lores"], vec2(0, 0))
+            
+            if current_slide_image != None:
+                screen.blit(current_slide_image["lores"], rect(t * screen.width / 2, t * screen.height / 2, screen.width * (1 - t), screen.height * (1 - t)))
+    
+        if transition_style == "flip_horizontal":
+            if t < 0.5:
+                subdelta = t * 2
+
+                if current_slide_image != None:
+                    screen.blit(current_slide_image["lores"], rect(subdelta * screen.width / 2, 0, screen.width * (1 - subdelta), screen.height))
+            else:
+                subdelta = (t - 0.5) * 2
+
+                screen.blit(next_slide_image["lores"], rect((1 - subdelta) * screen.width / 2, 0, screen.width * subdelta, screen.height))
+        
+        if transition_style == "flip_vertical":
+            if t < 0.5:
+                subdelta = t * 2
+
+                if current_slide_image != None:
+                    screen.blit(current_slide_image["lores"], rect(0, subdelta * screen.height / 2, screen.width, screen.height * (1 - subdelta)))
+            else:
+                subdelta = (t - 0.5) * 2
+
+                screen.blit(next_slide_image["lores"], rect(0, (1 - subdelta) * screen.height / 2, screen.width, screen.height * subdelta))
+    
+        if transition_style == "barn_door_open":
+            screen.blit(next_slide_image["lores"], vec2(0, 0))
+
+            if current_slide_image != None:
+                screen.blit(
+                    current_slide_image["lores"],
+                    rect(0, 0, screen.width / 2 + 1, screen.height),
+                    rect(-t * screen.width / 2, 0, screen.width / 2, screen.height),
+                )
+                screen.blit(
+                    current_slide_image["lores"],
+                    rect(screen.width / 2, 0, screen.width / 2 + 1, screen.height),
+                    rect((t * screen.width / 2) + screen.width / 2, 0, screen.width / 2, screen.height),
+                )
+            
+        if transition_style == "barn_door_close":
+            if current_slide_image != None:
+                screen.blit(current_slide_image["lores"], vec2(0, 0))
+
+            screen.blit(
+                next_slide_image["lores"],
+                rect(0, 0, screen.width / 2 + 1, screen.height),
+                rect(-(1 - t) * screen.width / 2, 0, screen.width / 2, screen.height),
+            )
+            screen.blit(
+                next_slide_image["lores"],
+                rect(screen.width / 2, 0, screen.width / 2 + 1, screen.height),
+                rect(((1 - t) * screen.width / 2) + screen.width / 2, 0, screen.width / 2, screen.height),
+            )
+
     else:
         if not (badge.mode() & HIRES):
             badge.mode(HIRES)
@@ -409,7 +483,7 @@ def transition_to_next_slide(slide_duration, new_transition_style, transition_du
     transition_end_time = transition_start_time + transition_duration
 
     if transition_style == "random":
-        random_style = random.randint(0, 2)
+        random_style = random.randint(0, 5)
 
         if random_style == 0:
             transition_style = "fade"
@@ -417,6 +491,12 @@ def transition_to_next_slide(slide_duration, new_transition_style, transition_du
             transition_style = "slide_random"
         elif random_style == 2:
             transition_style = "wipe_random"
+        elif random_style == 3:
+            transition_style = "zoom_random"
+        elif random_style == 4:
+            transition_style = "flip_random"
+        elif random_style == 5:
+            transition_style = "barn_door_random"
     else:
         transition_style = state["transition_style"]
 
@@ -430,8 +510,7 @@ def transition_to_next_slide(slide_duration, new_transition_style, transition_du
             transition_style = "slide_left"
         elif random_direction == 3:
             transition_style = "slide_right"
-    
-    if transition_style == "wipe_random":
+    elif transition_style == "wipe_random":
         random_direction = random.randint(0, 3)
         if random_direction == 0:
             transition_style = "wipe_up"
@@ -441,6 +520,24 @@ def transition_to_next_slide(slide_duration, new_transition_style, transition_du
             transition_style = "wipe_left"
         elif random_direction == 3:
             transition_style = "wipe_right"
+    elif transition_style == "zoom_random":
+        random_direction = random.randint(0, 1)
+        if random_direction == 0:
+            transition_style = "zoom_in"
+        elif random_direction == 1:
+            transition_style = "zoom_out"
+    elif transition_style == "flip_random":
+        random_direction = random.randint(0, 1)
+        if random_direction == 0:
+            transition_style = "flip_horizontal"
+        elif random_direction == 1:
+            transition_style = "flip_vertical"
+    elif transition_style == "barn_door_random":
+        random_direction = random.randint(0, 1)
+        if random_direction == 0:
+            transition_style = "barn_door_open"
+        elif random_direction == 1:
+            transition_style = "barn_door_close"
 
     transitioning = True
 
