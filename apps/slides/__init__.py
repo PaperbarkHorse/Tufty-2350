@@ -8,21 +8,50 @@ import toast
 STATE_ID = "horse.paperbark.slides"
 state = {
     "display_slides": [],
-    "manual_mode": False,
     "slide_duration": 5000,
     "shuffle_mode": "off",
     "transition_duration": 1000,
     "transition_style": "fade",
 }
 
+presets = [
+    {
+        "name": "Empty",
+        "display_slides": []
+    },
+    {
+        "name": "Pony Boops",
+        "display_slides": [
+            "/system/apps/gallery/images/Paperbark Boop.png",
+            "/system/apps/gallery/images/Vinyl Boop.png",
+        ]
+    },
+    {
+        "name": "Volunteer",
+        "display_slides": [
+            "/system/apps/slides/slides/Volunteer Nameplate.png",
+            "/system/apps/slides/slides/Volunteer Need a Hoof.png",
+        ]
+    },
+    {
+        "name": "Fursuit Handler",
+        "display_slides": [
+            "/system/apps/slides/slides/Fursuit Handler Nameplate.png",
+        ]
+    },
+]
+
+settings = None
+
 edit_mode = False
+auto_cycle = True
 
 all_slide_paths = []
 
 current_slide_image = None
 next_slide_image = None
 
-slide_index = 0
+slide_index = -1
 next_slide_time = 0
 
 transitioning = False
@@ -34,20 +63,20 @@ edit_slide_index = 0
 edit_slide_preview_image = None
 
 def init():
-    global all_slide_paths
+    global settings, presets_menu, all_slide_paths
 
     State.load(STATE_ID, state)
     badge.mode(HIRES)
 
     settings = menu.Menu()
+    presets_dropdown = menu.Dropdown("Preset", lambda: None, use_preset)
     
     settings.add_item(menu.Header("Settings"))
     settings.add_item(menu.Button("Back", settings.close))
     settings.add_item(menu.Spacer(5))
     settings.add_item(menu.Header("Slides"))
-    settings.add_item(menu.Checkbox("Edit slides", is_edit_mode, set_edit_mode))
-    settings.add_item(menu.Checkbox("Manual mode", is_manual_mode, set_manual_mode))
-    settings.add_item(menu.Button("Reset slides", clear_display_slides))
+    settings.add_item(menu.Button("Edit", lambda: set_edit_mode(True)).set_close_on_interact("all"))
+    settings.add_item(presets_dropdown)
     settings.add_item(menu.Spacer(5))
     settings.add_item(menu.Header("Playback"))
     settings.add_item(
@@ -97,10 +126,17 @@ def init():
             .add_option(5000, "Rock")
     )
 
+    for preset in presets:
+        presets_dropdown.add_option(preset["display_slides"], preset["name"])
+
     system.set_settings_menu(settings)
 
-    slides_root_path = "/system/apps/gallery/images"
-    all_slide_paths = list(map(lambda path: f"{slides_root_path}/{path}", filter(lambda path: path.lower().endswith(".png"), os.listdir(slides_root_path))))
+    slides_root_paths = ["/system/apps/slides/slides", "/system/apps/gallery/images"]
+    all_slide_paths = []
+
+    for slides_root_path in slides_root_paths:
+        all_slide_paths.extend(list(map(lambda path: f"{slides_root_path}/{path}", filter(lambda path: path.lower().endswith(".png"), os.listdir(slides_root_path)))))
+    
     all_slide_paths.sort()
 
     state["display_slides"] = list(filter(lambda display_slide: display_slide in all_slide_paths, state["display_slides"]))
@@ -123,15 +159,43 @@ def update():
         update_slide()
 
 def input_slide():
+    global slide_index
+
     if badge.pressed(BUTTON_B):
-        set_manual_mode(not is_manual_mode())
+        set_auto_cycle(not is_auto_cycle())
 
-        if is_manual_mode():
-            toast.show("Manual mode", toast.SHORT, toast.BOTTOM)
+        if is_auto_cycle():
+            toast.show("Auto cycle ON", toast.SHORT, toast.BOTTOM)
         else:
-            toast.show("Automatic mode", toast.SHORT, toast.BOTTOM)
-
+            toast.show("Auto cycle OFF", toast.SHORT, toast.BOTTOM)
     
+    if badge.pressed(BUTTON_UP):
+        if is_auto_cycle():
+            set_auto_cycle(False)
+
+        slide_index -= 1
+
+        if slide_index < 0:
+            slide_index = len(state["display_slides"]) - 1
+
+        load_slide(state["display_slides"][slide_index])
+        transition_to_next_slide(state["slide_duration"], None, 0)
+
+        toast.show(f"Slide {slide_index + 1} of {len(state["display_slides"])}", toast.SHORT, toast.BOTTOM)
+    
+    if badge.pressed(BUTTON_DOWN):
+        if is_auto_cycle():
+            set_auto_cycle(False)
+
+        slide_index += 1
+
+        if slide_index >= len(state["display_slides"]):
+            slide_index = 0
+
+        load_slide(state["display_slides"][slide_index])
+        transition_to_next_slide(state["slide_duration"], None, 0)
+
+        toast.show(f"Slide {slide_index + 1} of {len(state["display_slides"])}", toast.SHORT, toast.BOTTOM)
 
 def update_slide():
     global current_slide_image, next_slide_image, state, slide_index, next_slide_time, transition_start_time, transition_end_time, transitioning, transition_style
@@ -149,11 +213,20 @@ def update_slide():
 
         return
 
-    if badge.ticks >= next_slide_time and not is_manual_mode() and not transitioning:
+    if slide_index < 0:
+        slide_index = 0
+        
+        load_slide(state["display_slides"][slide_index])
+        current_slide_image = next_slide_image
+
+        transitioning = False
+        next_slide_time = badge.ticks + state["slide_duration"]
+
+    if badge.ticks >= next_slide_time and is_auto_cycle() and not transitioning and len(state["display_slides"]) > 1:
+        prev_slide_index = slide_index
+
         if state["shuffle_mode"] == "random":
             if len(state["display_slides"]) > 1:
-                prev_slide_index = slide_index
-
                 while slide_index == prev_slide_index:
                     slide_index = random.randint(0, len(state["display_slides"]) - 1)
         else:
@@ -276,6 +349,9 @@ def input_edit_mode():
             state["display_slides"].remove(all_slide_paths[edit_slide_index])
 
         save_state()
+    
+    if badge.pressed(BUTTON_A):
+        set_edit_mode(False)
 
 
 def update_edit_mode():
@@ -377,6 +453,10 @@ def is_edit_mode():
 
 def set_edit_mode(new_edit_mode):
     global edit_mode
+
+    if new_edit_mode == False and edit_mode == True:
+        reset_playback()
+   
     edit_mode = new_edit_mode
 
 def get_slide_duration():
@@ -414,16 +494,28 @@ def set_transition_duration(transition_duration):
     state["transition_duration"] = transition_duration
     save_state()
 
-def clear_display_slides():
-    state["display_slides"] = []
+def use_preset(display_slides):
+    state["display_slides"] = list(filter(lambda display_slide: display_slide in all_slide_paths, display_slides))
     save_state()
+    reset_playback()
 
-def is_manual_mode():
-    return state["manual_mode"]
+def is_auto_cycle():
+    global auto_cycle
+    return auto_cycle
 
-def set_manual_mode(manual_mode):
-    state["manual_mode"] = manual_mode
-    save_state()
+def set_auto_cycle(new_auto_cycle):
+    global auto_cycle
+    auto_cycle = new_auto_cycle
+
+def reset_playback():
+    global current_slide_image, next_slide_image, transitioning, next_slide_time, slide_index
+
+    slide_index = -1
+    current_slide_image = None
+    next_slide_image = None
+
+    transitioning = False
+    next_slide_time = badge.ticks + state["slide_duration"]
 
 def center_text(text, x, y):
     width, height = screen.measure_text(text)
