@@ -21,6 +21,7 @@ app_path = None
 app_metadata = None
 
 app_menu = None
+app_settings_menu = None
 system_menu = None
 
 # ===== State ===== #
@@ -117,8 +118,7 @@ def on_before_app_launch(app_path):
 
 # ===== App Menu ===== #
 def init_app_menu():
-    global app_menu
-    global system_menu
+    global app_menu, system_menu, app_settings_menu, app_path
 
     app_menu = menu.Menu()
     system_menu = menu.Menu()
@@ -129,7 +129,12 @@ def init_app_menu():
         app_menu.add_item(menu.Header("Main Menu"))
 
     app_menu.add_item(menu.Button("Back", app_menu.close))
-    app_menu.add_item(menu.Button("Settings"))
+
+    if app_settings_menu != None:
+        app_menu.add_item(menu.Subpanel("Settings", app_settings_menu))
+    else:
+        app_menu.add_item(menu.Button("Settings").set_enabled(False))
+
     app_menu.add_item(menu.Subpanel("System", system_menu))
     app_menu.add_item(menu.Button("Quit", quit_to_launcher))
 
@@ -146,6 +151,12 @@ def init_app_menu():
     system_menu.add_item(menu.Button("Sleep", badge.sleep))
     system_menu.add_item(menu.Button("USB disk mode", launch_usb_disk_mode))
     system_menu.add_item(menu.Button("Enter shipping mode", powman.shipping_mode))
+
+# ===== Settings Menu ===== #
+def set_settings_menu(settings_menu):
+    global app_settings_menu
+    app_settings_menu = settings_menu
+    init_app_menu()
 
 # ===== Init ===== #
 def init():

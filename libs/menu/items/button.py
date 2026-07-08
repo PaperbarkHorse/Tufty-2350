@@ -7,6 +7,15 @@ class Button(MenuItem):
         super().__init__()
         self.text = text
         self.action = action
+        self.enabled = True
+
+    def set_action(self, action):
+        self.action = action
+        return self
+    
+    def set_enabled(self, enabled):
+        self.enabled = enabled
+        return self
 
     def get_size(self):
         screen.font = DEFAULT_FONT
@@ -15,7 +24,7 @@ class Button(MenuItem):
         return height + 2
 
     def is_interactive(self):
-        return True
+        return self.enabled
 
     def render(self, x, y, width, height, selected):
         if selected:
@@ -25,7 +34,11 @@ class Button(MenuItem):
 
         screen.rectangle(x, y, width, height)
         
-        screen.pen = color.rgb(255, 255, 255)
+        if self.enabled:
+            screen.pen = color.rgb(255, 255, 255)
+        else:
+            screen.pen = color.rgb(128, 128, 128)
+
         screen.font = DEFAULT_FONT
         screen.text(self.text, x + 1, y + 1)
 

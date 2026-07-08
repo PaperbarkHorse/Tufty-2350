@@ -1,6 +1,7 @@
 from menu.base import *
 from menu.items.button import *
 from menu.items.checkbox import *
+from menu.items.dropdown import *
 from menu.items.header import *
 from menu.items.label import *
 from menu.items.spacer import *

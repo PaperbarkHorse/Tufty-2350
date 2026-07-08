@@ -3,12 +3,12 @@ from menu.base import MenuItem
 
 class Checkbox(MenuItem):
 
-    def __init__(self, text, get_state, callback = None):
+    def __init__(self, text, get_state, set_state = None):
         super().__init__()
         self.text = text
         self.get_state = get_state
         self.state = get_state()
-        self.callback = callback
+        self.set_state = set_state
 
     def get_size(self):
         screen.font = DEFAULT_FONT
@@ -46,5 +46,5 @@ class Checkbox(MenuItem):
     def interact(self):
         self.state = not self.state
         
-        if self.callback:
-            self.callback(self.state)
+        if self.set_state:
+            self.set_state(self.state)
