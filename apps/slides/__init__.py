@@ -3,10 +3,12 @@ import os
 import random
 import system
 import menu
+import toast
 
 STATE_ID = "horse.paperbark.slides"
 state = {
     "display_slides": [],
+    "manual_mode": False,
     "slide_duration": 5000,
     "shuffle_mode": "off",
     "transition_duration": 1000,
@@ -28,6 +30,9 @@ transition_style = None
 transition_start_time = 0
 transition_end_time = 0
 
+edit_slide_index = 0
+edit_slide_preview_image = None
+
 def init():
     global all_slide_paths
 
@@ -40,9 +45,14 @@ def init():
     settings.add_item(menu.Button("Back", settings.close))
     settings.add_item(menu.Spacer(5))
     settings.add_item(menu.Header("Slides"))
-    settings.add_item(menu.Checkbox("Edit mode", is_edit_mode, set_edit_mode))
+    settings.add_item(menu.Checkbox("Edit slides", is_edit_mode, set_edit_mode))
+    settings.add_item(menu.Checkbox("Manual mode", is_manual_mode, set_manual_mode))
+    settings.add_item(menu.Button("Reset slides", clear_display_slides))
+    settings.add_item(menu.Spacer(5))
+    settings.add_item(menu.Header("Playback"))
     settings.add_item(
         menu.Dropdown("Duration", get_slide_duration, set_slide_duration)
+            .add_option(0, "Instant")
             .add_option(2000, "2s")
             .add_option(5000, "5s")
             .add_option(10000, "10s")
@@ -89,88 +99,83 @@ def init():
 
     system.set_settings_menu(settings)
 
-    slides_root_path = "/system/apps/slides/slides"
+    slides_root_path = "/system/apps/gallery/images"
     all_slide_paths = list(map(lambda path: f"{slides_root_path}/{path}", filter(lambda path: path.lower().endswith(".png"), os.listdir(slides_root_path))))
     all_slide_paths.sort()
 
-    state["display_slides"] = all_slide_paths # TODO: Debug only
+    state["display_slides"] = list(filter(lambda display_slide: display_slide in all_slide_paths, state["display_slides"]))
+    save_state()
+
 
 def input():
-    pass
+    if edit_mode:
+        input_edit_mode()
+    else:
+        input_slide()
 
 def update():
-    global current_slide_image, next_slide_image, state, slide_index, next_slide_time, transition_start_time, transition_end_time, transitioning, transition_style
-
     screen.pen = color.rgb(0, 0, 0)
     screen.clear()
 
-    if badge.ticks >= next_slide_time:
-        slide_index += 1
+    if edit_mode:
+        update_edit_mode()
+    else:
+        update_slide()
 
-        if slide_index >= len(state["display_slides"]):
-            slide_index = 0
+def input_slide():
+    if badge.pressed(BUTTON_B):
+        set_manual_mode(not is_manual_mode())
 
-        next_image = image.load(state["display_slides"][slide_index])
-        next_image_hires = image(320, 240)
-        next_image_lores = image(160, 120)
-        next_image_hires.blit(next_image, rect(0, 0, next_image_hires.width, next_image_hires.height))
-        next_image_lores.blit(next_image, rect(0, 0, next_image_lores.width, next_image_lores.height))
-        
-        next_slide_image = {
-            "hires": next_image_hires,
-            "lores": next_image_lores,
-        }
+        if is_manual_mode():
+            toast.show("Manual mode", toast.SHORT, toast.BOTTOM)
+        else:
+            toast.show("Automatic mode", toast.SHORT, toast.BOTTOM)
 
-        badge.mode(LORES)
+    
+
+def update_slide():
+    global current_slide_image, next_slide_image, state, slide_index, next_slide_time, transition_start_time, transition_end_time, transitioning, transition_style
+    
+    if len(state["display_slides"]) <= 0:
+        if not (badge.mode() & LORES):
+            badge.mode(LORES)
+
+        screen.pen = color.rgb(0, 0, 0)
+        screen.clear()
+
+        screen.pen = color.rgb(255, 255, 255)
+        screen.text("No slides selected", 2, 2)
+        screen.text("Use edit mode to add some", 2, 15)
+
+        return
+
+    if badge.ticks >= next_slide_time and not is_manual_mode() and not transitioning:
+        if state["shuffle_mode"] == "random":
+            if len(state["display_slides"]) > 1:
+                prev_slide_index = slide_index
+
+                while slide_index == prev_slide_index:
+                    slide_index = random.randint(0, len(state["display_slides"]) - 1)
+        else:
+            slide_index += 1
+
+            if slide_index >= len(state["display_slides"]):
+                slide_index = 0
+
+        load_slide(state["display_slides"][slide_index])
         badge.poll()
 
-        next_slide_time = badge.ticks + state["slide_duration"] + state["transition_duration"]
-        transition_start_time = badge.ticks
-        transition_end_time = transition_start_time + state["transition_duration"]
-
-        if state["transition_style"] == "random":
-            random_style = random.randint(0, 2)
-
-            if random_style == 0:
-                transition_style = "fade"
-            elif random_style == 1:
-                transition_style = "slide_random"
-            elif random_style == 2:
-                transition_style = "wipe_random"
-        else:
-            transition_style = state["transition_style"]
-
-        if transition_style == "slide_random":
-            random_direction = random.randint(0, 3)
-            if random_direction == 0:
-                transition_style = "slide_up"
-            elif random_direction == 1:
-                transition_style = "slide_down"
-            elif random_direction == 2:
-                transition_style = "slide_left"
-            elif random_direction == 3:
-                transition_style = "slide_right"
-        
-        if transition_style == "wipe_random":
-            random_direction = random.randint(0, 3)
-            if random_direction == 0:
-                transition_style = "wipe_up"
-            elif random_direction == 1:
-                transition_style = "wipe_down"
-            elif random_direction == 2:
-                transition_style = "wipe_left"
-            elif random_direction == 3:
-                transition_style = "wipe_right"
-
-        transitioning = True
+        transition_to_next_slide(state["slide_duration"], state["transition_style"], state["transition_duration"])
 
     if transitioning and (badge.ticks >= transition_end_time or next_slide_image == None):
         transitioning = False
         current_slide_image = next_slide_image
         next_slide_image = None
-        badge.mode(HIRES)
 
     if transitioning:
+        if not (badge.mode() & LORES):
+            badge.mode(LORES)
+
         transition_delta = (badge.ticks - transition_start_time) / (transition_end_time - transition_start_time)
         transition_delta = min(transition_delta, 1.0)
 
@@ -234,9 +239,134 @@ def update():
             wipe_area = rect((1 - transition_delta) * screen.width, 0, transition_delta * screen.width, screen.height)
             screen.blit(next_slide_image["lores"], wipe_area, wipe_area)
     else:
+        if not (badge.mode() & HIRES):
+            badge.mode(HIRES)
+        
         if current_slide_image != None:
             screen.blit(current_slide_image["hires"], vec2(0, 0))
 
+def input_edit_mode():
+    global edit_slide_index, edit_slide_preview_image
+
+    if badge.pressed(BUTTON_UP):
+        edit_slide_index -= 1
+
+        if edit_slide_index < 0:
+            edit_slide_index = len(all_slide_paths) - 1
+
+        edit_slide_preview_image = image.load(all_slide_paths[edit_slide_index])
+
+    if badge.pressed(BUTTON_DOWN):
+        edit_slide_index += 1
+
+        if edit_slide_index >= len(all_slide_paths):
+            edit_slide_index = 0
+
+        edit_slide_preview_image = image.load(all_slide_paths[edit_slide_index])
+
+    if badge.pressed(BUTTON_B):
+        display_index = None
+        for i, display_slide in enumerate(state["display_slides"]):
+            if display_slide == all_slide_paths[edit_slide_index]:
+                display_index = i
+
+        if display_index == None:
+            state["display_slides"].append(all_slide_paths[edit_slide_index])
+        else:
+            state["display_slides"].remove(all_slide_paths[edit_slide_index])
+
+        save_state()
+
+
+def update_edit_mode():
+    global edit_slide_index, edit_slide_preview_image
+
+    edit_slide_path = all_slide_paths[edit_slide_index]
+
+    if not (badge.mode() & LORES):
+        badge.mode(LORES)
+
+    screen.pen = color.rgb(0, 0, 0)
+    screen.clear()
+
+    if not edit_slide_preview_image:
+        edit_slide_preview_image = image.load(edit_slide_path)
+    
+    screen.blit(edit_slide_preview_image, rect(30, 0, 100, 75))
+
+    display_index = None
+    for i, display_slide in enumerate(state["display_slides"]):
+        if display_slide == edit_slide_path:
+            display_index = i
+
+    screen.pen = color.rgb(255, 255, 255)
+    
+    center_text(f"{edit_slide_path.split("/")[-1].split(".")[0]}", screen.width / 2, 75)
+    # center_text(f"{edit_slide_index + 1} / {len(all_slide_paths)}", screen.width / 2, 86)
+
+    if display_index != None:
+        center_text(f"{display_index + 1} of {len(state["display_slides"])}", screen.width / 2, 86)
+    else:
+        center_text(f"- of {len(state["display_slides"])}", screen.width / 2, 86)
+    
+
+def load_slide(slide_path):
+    global next_slide_image
+
+    next_image = image.load(slide_path)
+    next_image_hires = image(320, 240)
+    next_image_lores = image(160, 120)
+    next_image_hires.blit(next_image, rect(0, 0, next_image_hires.width, next_image_hires.height))
+    next_image_lores.blit(next_image, rect(0, 0, next_image_lores.width, next_image_lores.height))
+    
+    next_slide_image = {
+        "hires": next_image_hires,
+        "lores": next_image_lores,
+    }
+
+def transition_to_next_slide(slide_duration, new_transition_style, transition_duration):
+    global next_slide_time, transition_start_time, transition_end_time, transitioning, transition_style
+
+    transition_style = new_transition_style
+    next_slide_time = badge.ticks + slide_duration + transition_duration
+    transition_start_time = badge.ticks
+    transition_end_time = transition_start_time + transition_duration
+
+    if transition_style == "random":
+        random_style = random.randint(0, 2)
+
+        if random_style == 0:
+            transition_style = "fade"
+        elif random_style == 1:
+            transition_style = "slide_random"
+        elif random_style == 2:
+            transition_style = "wipe_random"
+    else:
+        transition_style = state["transition_style"]
+
+    if transition_style == "slide_random":
+        random_direction = random.randint(0, 3)
+        if random_direction == 0:
+            transition_style = "slide_up"
+        elif random_direction == 1:
+            transition_style = "slide_down"
+        elif random_direction == 2:
+            transition_style = "slide_left"
+        elif random_direction == 3:
+            transition_style = "slide_right"
+    
+    if transition_style == "wipe_random":
+        random_direction = random.randint(0, 3)
+        if random_direction == 0:
+            transition_style = "wipe_up"
+        elif random_direction == 1:
+            transition_style = "wipe_down"
+        elif random_direction == 2:
+            transition_style = "wipe_left"
+        elif random_direction == 3:
+            transition_style = "wipe_right"
+
+    transitioning = True
 
 def save_state():
     State.save(STATE_ID, state)
@@ -283,3 +413,18 @@ def get_transition_duration():
 def set_transition_duration(transition_duration):
     state["transition_duration"] = transition_duration
     save_state()
+
+def clear_display_slides():
+    state["display_slides"] = []
+    save_state()
+
+def is_manual_mode():
+    return state["manual_mode"]
+
+def set_manual_mode(manual_mode):
+    state["manual_mode"] = manual_mode
+    save_state()
+
+def center_text(text, x, y):
+    width, height = screen.measure_text(text)
+    screen.text(text, x - width / 2, y)
