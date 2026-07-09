@@ -11,6 +11,7 @@ try:
     import system
     import menu
     import toast
+    import draw
 
     system.init()
 
@@ -18,17 +19,69 @@ try:
     badge.mode(LORES)
 
     badge.poll()
-    if badge.held(BUTTON_HOME):
+
+    if badge.held(BUTTON_HOME) and badge.held(BUTTON_A):
         system.set_boot_to_launcher()
         system.set_input_locked(False)
         system.set_super_dim(False)
+        system.set_shipping_mode(False)
 
-        screen.pen = color.rgb(255, 0, 0)
-        screen.clear()
+        draw.clear()
+
+        screen.font = rom_font.teatime
+        screen.pen = color.rgb(255, 100, 100)
+        draw.center_text("System Reset", screen.width / 2, 2)
+        
+        screen.font = rom_font.sins
+        screen.pen = color.rgb(255, 255, 255)
+        draw.center_text("Release HOME and A to start", screen.width / 2, 30)
+
         display.update()
         
-        while badge.held(BUTTON_HOME):
+        while badge.held(BUTTON_HOME) or badge.held(BUTTON_A):
             badge.poll()
+        
+        machine.reset()
+
+    if system.is_shipping_mode():
+        hold_time = 0
+        timeout = 10000
+
+        while True:
+            badge.poll()
+
+            draw.clear()
+
+            screen.font = rom_font.teatime
+            screen.pen = color.rgb(50, 128, 255)
+            draw.center_text("Shipping Mode", screen.width / 2, 2)
+
+            screen.font = rom_font.sins
+            screen.pen = color.rgb(255, 255, 255)
+            draw.center_text("Hold A and C to start badge", screen.width / 2, 30)
+
+            if badge.held(BUTTON_A) and badge.held(BUTTON_C):
+                screen.pen = color.rgb(100, 255, 100)
+                draw.center_text("Keep holding...", screen.width / 2, 52)
+                screen.rectangle(30, 66, (screen.width - 60) * (hold_time / 2000), 5)
+
+                hold_time += badge.ticks_delta
+            else:
+                screen.pen = color.rgb(255, 100, 100)
+                draw.center_text(f"{timeout / 1000:.1f}s", screen.width / 2, 52)
+                screen.rectangle(30, 66, (screen.width - 60) * (timeout / 10000), 5)
+                hold_time = 0
+                timeout -= badge.ticks_delta
+
+            if hold_time >= 2000:
+                system.set_shipping_mode(False)
+                draw.clear()
+                display.update()
+                break
+            elif timeout <= 0:
+                system.trigger_shipping_mode()
+
+            display.update()
 
     screen.pen = color.rgb(0, 0, 0)
     screen.clear()

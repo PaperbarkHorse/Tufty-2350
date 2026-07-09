@@ -12,7 +12,8 @@ state = {
     "boot_app_path": None,
     "fps_overlay": False,
     "input_locked": False,
-    "super_dim": False
+    "super_dim": False,
+    "shipping_mode": False,
 }
 
 background_image = None
@@ -116,6 +117,18 @@ def on_before_app_launch(app_path):
     load_app_metadata(app_path)
     init_app_menu()
 
+# ===== Shipping Mode ===== #
+def is_shipping_mode():
+    return state["shipping_mode"]
+
+def set_shipping_mode(enabled):
+    state["shipping_mode"] = enabled
+    save_state()
+
+def trigger_shipping_mode():
+    set_shipping_mode(True)
+    powman.shipping_mode()
+
 # ===== App Menu ===== #
 def init_app_menu():
     global app_menu, system_menu, app_settings_menu, app_path
@@ -150,7 +163,7 @@ def init_app_menu():
     system_menu.add_item(menu.Header("Hardware"))
     system_menu.add_item(menu.Button("Sleep", badge.sleep))
     system_menu.add_item(menu.Button("USB disk mode", launch_usb_disk_mode))
-    system_menu.add_item(menu.Button("Enter shipping mode", powman.shipping_mode))
+    system_menu.add_item(menu.Button("Enter shipping mode", trigger_shipping_mode))
 
 # ===== Settings Menu ===== #
 def set_settings_menu(settings_menu):
