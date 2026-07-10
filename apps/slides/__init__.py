@@ -13,6 +13,8 @@ state = {
     "shuffle_mode": "off",
     "transition_duration": 1000,
     "transition_id": "fade",
+    "auto_cycle": True,
+    "timer_display": False,
 }
 
 presets = [
@@ -45,7 +47,6 @@ presets = [
 settings = None
 
 edit_mode = False
-auto_cycle = True
 
 all_slide_paths = []
 
@@ -54,6 +55,7 @@ next_slide_image = None
 
 slide_index = -1
 next_slide_time = 0
+slide_start_time = 0
 
 transitioning = False
 transition_id = None
@@ -102,6 +104,8 @@ def init():
             .add_option("off", "Off")
             .add_option("random", "Random")
     )
+    settings.add_item(menu.Checkbox("Auto Cycle", is_auto_cycle, set_auto_cycle))
+    settings.add_item(menu.Checkbox("Timer", is_timer_display, set_timer_display))
     settings.add_item(menu.Spacer(5))
     settings.add_item(menu.Header("Transition"))
     settings.add_item(transition_style_dropdown)
@@ -193,7 +197,7 @@ def input_slide():
         toast.show(f"Slide {slide_index + 1} of {len(state["display_slides"])}", toast.SHORT, toast.BOTTOM)
 
 def update_slide():
-    global current_slide_image, next_slide_image, state, slide_index, next_slide_time, transition_start_time, transition_end_time, transitioning, transition_id
+    global current_slide_image, next_slide_image, state, slide_index, next_slide_time, transition_start_time, transition_end_time, transitioning, transition_id, slide_start_time
     
     if len(state["display_slides"]) <= 0:
         if not (badge.mode() & LORES):
@@ -216,6 +220,7 @@ def update_slide():
 
         transitioning = False
         next_slide_time = badge.ticks + state["slide_duration"]
+        slide_start_time = badge.ticks
 
     if badge.ticks >= next_slide_time and is_auto_cycle() and not transitioning and len(state["display_slides"]) > 1:
         prev_slide_index = slide_index
@@ -238,6 +243,7 @@ def update_slide():
     if transitioning and (badge.ticks >= transition_end_time or next_slide_image == None):
         transitioning = False
         current_slide_image = next_slide_image
+        slide_start_time = badge.ticks
         next_slide_image = None
 
     if transitioning:
@@ -259,6 +265,13 @@ def update_slide():
         
         if current_slide_image != None:
             screen.blit(current_slide_image["hires"], vec2(0, 0))
+
+            if is_timer_display() and is_auto_cycle():
+                screen.pen = color.rgb(0, 0, 0)
+                screen.rectangle(0, screen.height - 2, screen.width, 2)
+
+                screen.pen = color.rgb(200, 200, 200)
+                screen.rectangle(0, screen.height - 2, screen.width * (1 - ((next_slide_time - badge.ticks) / (next_slide_time - slide_start_time))), 2)
 
 def input_edit_mode():
     global edit_slide_index, edit_slide_preview_image
@@ -382,13 +395,7 @@ def get_slide_duration():
 def set_slide_duration(slide_duration):
     state["slide_duration"] = slide_duration
     save_state()
-
-def get_shuffle_mode():
-    return state["shuffle_mode"]
-
-def set_shuffle_mode(shuffle_mode):
-    state["shuffle_mode"] = shuffle_mode
-    save_state()
+    reset_playback()
 
 def get_shuffle_mode():
     return state["shuffle_mode"]
@@ -417,12 +424,18 @@ def use_preset(display_slides):
     reset_playback()
 
 def is_auto_cycle():
-    global auto_cycle
-    return auto_cycle
+    return state["auto_cycle"]
 
-def set_auto_cycle(new_auto_cycle):
-    global auto_cycle
-    auto_cycle = new_auto_cycle
+def set_auto_cycle(auto_cycle):
+    state["auto_cycle"] = auto_cycle
+    save_state()
+
+def is_timer_display():
+    return state["timer_display"]
+
+def set_timer_display(timer_display):
+    state["timer_display"] = timer_display
+    save_state()
 
 def reset_playback():
     global current_slide_image, next_slide_image, transitioning, next_slide_time, slide_index
