@@ -3,6 +3,8 @@ import math
 id = "explosion"
 name = "Explosion"
 
+duration_multiplier = 1.5
+
 explosion = SpriteSheet("/system/apps/slides/assets/explosion.png", 16, 1).animation()
 
 def render(t, prev, next):

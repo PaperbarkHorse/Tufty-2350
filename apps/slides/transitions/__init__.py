@@ -20,7 +20,10 @@ import transitions.barn_door_open as barn_door_open
 import transitions.barn_door_close as barn_door_close
 import transitions.barn_door_random as barn_door_random
 import transitions.explosion as explosion
+import transitions.shatter as shatter
+import transitions.unshatter as unshatter
 import transitions.random as random
+import transitions.chaotic as chaotic
 
 all_transitions = [
     fade,
@@ -45,7 +48,10 @@ all_transitions = [
     barn_door_close,
     barn_door_random,
     explosion,
+    shatter,
+    unshatter,
     random,
+    chaotic,
 ]
 
 def by_id(id):

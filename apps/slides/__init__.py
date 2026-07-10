@@ -346,15 +346,18 @@ def transition_to_next_slide(slide_duration, new_transition_id, transition_durat
     global next_slide_time, transition_start_time, transition_end_time, transitioning, transition_id, transition_style
 
     transition_id = new_transition_id
-    next_slide_time = badge.ticks + slide_duration + transition_duration
-    transition_start_time = badge.ticks
-    transition_end_time = transition_start_time + transition_duration
-
     transition_style = transitions.by_id(transition_id)
 
     while hasattr(transition_style, "random_group"):
         random_group = transition_style.random_group
         transition_style = random_group[random.randint(0, len(random_group) - 1)]
+
+    if hasattr(transition_style, "duration_multiplier"):
+        transition_duration *= transition_style.duration_multiplier
+
+    next_slide_time = badge.ticks + slide_duration + transition_duration
+    transition_start_time = badge.ticks
+    transition_end_time = transition_start_time + transition_duration
 
     transitioning = True
 
