@@ -146,6 +146,8 @@ class Menu(Panel):
         for index, item in enumerate(self.items):
             selected = index == self.selected_index
 
+            item.update()
+            
             height = item.get_size()
             item.layout(0, y, screen.width, height)
 
@@ -239,6 +241,9 @@ class MenuItem:
     
     def is_interactive(self):
         return False
+
+    def update(self):
+        pass
 
     def layout(self, x, y, width, height):
         self.x = x

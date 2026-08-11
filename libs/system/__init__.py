@@ -6,6 +6,8 @@ import json
 import menu
 import toast
 
+from system.ui.network import NetworkMenu
+
 STATE_ID = "horse.paperbark.system"
 state = {
     "backlight": 0.5,
@@ -14,6 +16,7 @@ state = {
     "input_locked": False,
     "super_dim": False,
     "shipping_mode": False,
+    "network": None,
 }
 
 background_image = None
@@ -24,6 +27,7 @@ app_metadata = None
 app_menu = None
 app_settings_menu = None
 system_menu = None
+network_menu = None
 
 # ===== State ===== #
 def save_state():
@@ -131,10 +135,11 @@ def trigger_shipping_mode():
 
 # ===== App Menu ===== #
 def init_app_menu():
-    global app_menu, system_menu, app_settings_menu, app_path
+    global app_menu, system_menu, app_settings_menu, app_path, network_menu
 
     app_menu = menu.Menu()
     system_menu = menu.Menu()
+    network_menu = NetworkMenu()
 
     if app_metadata != None and "name" in app_metadata:
         app_menu.add_item(menu.Header(app_metadata["name"]))
@@ -155,8 +160,9 @@ def init_app_menu():
     system_menu.add_item(menu.Button("Back", system_menu.close))
     system_menu.add_item(menu.Button("Lock input", lock_input))
     system_menu.add_item(menu.Subpanel("Brightness", menu.BacklightConfigPanel()))
+    system_menu.add_item(menu.Subpanel("Network", network_menu))
     system_menu.add_item(menu.Spacer(5))
-    system_menu.add_item(menu.Header("Experimental"))
+    system_menu.add_item(menu.Header("Overlays"))
     system_menu.add_item(menu.Checkbox("FPS overlay", is_fps_overlay_enabled, set_fps_overlay))
     system_menu.add_item(menu.Checkbox("Super dim", is_super_dim_enabled, set_super_dim))
     system_menu.add_item(menu.Spacer(5))
@@ -170,6 +176,14 @@ def set_settings_menu(settings_menu):
     global app_settings_menu
     app_settings_menu = settings_menu
     init_app_menu()
+
+# ===== Networking ===== #
+def set_selected_network(network):
+    state["network"] = network
+    save_state()
+
+def get_selected_network():
+    return state["network"]
 
 # ===== Init ===== #
 def init():

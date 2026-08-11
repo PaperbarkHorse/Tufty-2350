@@ -4,6 +4,7 @@ from menu.items.checkbox import *
 from menu.items.dropdown import *
 from menu.items.header import *
 from menu.items.label import *
+from menu.items.property import *
 from menu.items.spacer import *
 from menu.items.subpanel import *
 from menu.panels.backlight_config import *
