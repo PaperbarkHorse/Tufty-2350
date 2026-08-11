@@ -15,14 +15,14 @@ def animations():
     return {
         "idle": {
             "framerate": 1,
-            LEFT: SpriteSheet("ponies/vinyl_scratch/idle_left.png", 1, 1).animation(),
-            RIGHT: SpriteSheet("ponies/vinyl_scratch/idle_right.png", 1, 1).animation(),
+            LEFT: image.load("ponies/vinyl_scratch/idle_left.png").spritesheet(1, 1),
+            RIGHT: image.load("ponies/vinyl_scratch/idle_right.png").spritesheet(1, 1),
         },
         "blink": None,
         "walk": {
             "framerate": 24,
-            LEFT: SpriteSheet("ponies/vinyl_scratch/walk_left.png", 16, 1).animation(),
-            RIGHT: SpriteSheet("ponies/vinyl_scratch/walk_right.png", 16, 1).animation(),
+            LEFT: image.load("ponies/vinyl_scratch/walk_left.png").spritesheet(16, 1),
+            RIGHT: image.load("ponies/vinyl_scratch/walk_right.png").spritesheet(16, 1),
         },
     }
 

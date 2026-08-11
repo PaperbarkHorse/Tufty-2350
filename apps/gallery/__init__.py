@@ -52,7 +52,7 @@ def input():
         next_image()
 
 def update():
-    screen.font = rom_font.ignore
+    screen.font = font.ignore
 
     screen.pen = color.rgb(0, 0, 0)
     screen.clear()

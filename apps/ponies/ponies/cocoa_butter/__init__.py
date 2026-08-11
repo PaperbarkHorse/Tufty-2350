@@ -16,24 +16,24 @@ def animations():
     return {
         "idle": {
             "framerate": 1,
-            LEFT: SpriteSheet("ponies/cocoa_butter/idle_left.png", 1, 1).animation(),
-            RIGHT: SpriteSheet("ponies/cocoa_butter/idle_right.png", 1, 1).animation(),
+            LEFT: image.load("ponies/cocoa_butter/idle_left.png").spritesheet(1, 1),
+            RIGHT: image.load("ponies/cocoa_butter/idle_right.png").spritesheet(1, 1),
         },
         "blink": None,
         "walk": {
             "framerate": 24,
-            LEFT: SpriteSheet("ponies/cocoa_butter/walk_left.png", 16, 1).animation(),
-            RIGHT: SpriteSheet("ponies/cocoa_butter/walk_right.png", 16, 1).animation(),
+            LEFT: image.load("ponies/cocoa_butter/walk_left.png",).spritesheet(6, 1),
+            RIGHT: image.load("ponies/cocoa_butter/walk_right.png",).spritesheet(6, 1),
         },
         "huh": {
             "framerate": 1,
-            LEFT: SpriteSheet("ponies/cocoa_butter/huh_left.png", 1, 1).animation(),
-            RIGHT: SpriteSheet("ponies/cocoa_butter/huh_right.png", 1, 1).animation(),
+            LEFT: image.load("ponies/cocoa_butter/huh_left.png").spritesheet(1, 1),
+            RIGHT: image.load("ponies/cocoa_butter/huh_right.png").spritesheet(1, 1),
         },
         "huh_behind": {
             "framerate": 1,
-            LEFT: SpriteSheet("ponies/cocoa_butter/huh_behind_left.png", 1, 1).animation(),
-            RIGHT: SpriteSheet("ponies/cocoa_butter/huh_behind_right.png", 1, 1).animation(),
+            LEFT: image.load("ponies/cocoa_butter/huh_behind_left.png").spritesheet(1, 1),
+            RIGHT: image.load("ponies/cocoa_butter/huh_behind_right.png").spritesheet(1, 1),
         },
     }
 

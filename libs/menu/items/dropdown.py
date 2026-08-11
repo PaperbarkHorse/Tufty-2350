@@ -145,7 +145,7 @@ class DropdownPanel(Panel):
             screen.text(choice.text, 1, line_y + 1)
 
         # screen.pen = color.rgb(255, 255, 255)
-        # screen.font = rom_font.teatime
+        # screen.font = font.teatime
 
         # title_width, title_height = screen.measure_text(self.dropdown.text)
 

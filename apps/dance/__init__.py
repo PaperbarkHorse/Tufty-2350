@@ -66,7 +66,7 @@ def render():
 
     frame = math.floor((badge.ticks - animation_start_time) / ms_per_frame)
 
-    image = current_animation_sprites.frame(frame)
+    image = current_animation_sprites.sprite(frame % current_animation_sprites.sprites)
 
     scale = 2
     x_offset = -8
@@ -182,5 +182,5 @@ def load_character(character):
 def load_animation(animation):
     global current_animation, current_animation_sprites, animation_start_time
     current_animation = animation
-    current_animation_sprites = SpriteSheet(animation["path"], animation["frames"], 1).animation()
+    current_animation_sprites = image.load(animation["path"]).spritesheet(animation["frames"], 1)
     animation_start_time = badge.ticks

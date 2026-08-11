@@ -99,7 +99,7 @@ def load_animation(animation):
     gc.collect()
 
     for sprite_data in animation["sprites"]:
-        animation_sprites.append(SpriteSheet(sprite_data["path"], sprite_data["width"], sprite_data["height"]))
+        animation_sprites.append(image.load(sprite_data["path"]).spritesheet(sprite_data["width"], sprite_data["height"]))
         animation_total_frames += sprite_data["frames"]
 
     if hires != animation["hires"]:

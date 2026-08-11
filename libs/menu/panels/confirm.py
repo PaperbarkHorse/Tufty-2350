@@ -36,7 +36,7 @@ class ConfirmPanel(Panel):
             screen.alpha = 255
 
         screen.pen = color.rgb(255, 255, 255)
-        screen.font = rom_font.teatime
+        screen.font = font.teatime
 
         title_width, title_height = screen.measure_text(self.title)
         screen.text(self.title, (screen.width - title_width) / 2, 5)

@@ -30,9 +30,9 @@ def update():
 
 def render():
     if screen.width == 320:
-        screen.font = rom_font.ignore
+        screen.font = font.ignore
     else:
-        screen.font = rom_font.sins
+        screen.font = font.sins
 
     width, height = screen.measure_text(toast_text)
     height += 1

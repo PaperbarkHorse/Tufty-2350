@@ -58,7 +58,7 @@ class Pony:
         sprite_y = math.floor(self.y - self.data.sprite_bounds["y"])
 
         frame = self.get_animation_frame()
-        screen.blit(self.animation_sprites.frame(frame), vec2(sprite_x, sprite_y))
+        screen.blit(self.animation_sprites.sprite(frame), vec2(sprite_x, sprite_y))
 
     def render_debug(self):
         debug = [
@@ -98,7 +98,7 @@ class Pony:
         frame = math.floor((badge.ticks - self.animation_start) / self.animation_ms_per_frame)
 
         if not self.animation_loop:
-            frame = min(frame, len(self.animation_sprites.frames))
+            frame = min(frame, self.animation_sprites.sprites)
 
         return frame
     
@@ -108,7 +108,7 @@ class Pony:
         
         frame = math.floor((badge.ticks - self.animation_start) / self.animation_ms_per_frame)
 
-        return frame >= len(self.animation_sprites.frames)
+        return frame >= self.animation_sprites.sprites
     
     def set_facing(self, facing):
         self.facing = facing

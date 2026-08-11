@@ -16,33 +16,33 @@ def animations():
     return {
         "idle": {
             "framerate": 1,
-            LEFT: SpriteSheet("ponies/paperbark/idle_left.png", 1, 1).animation(),
-            RIGHT: SpriteSheet("ponies/paperbark/idle_right.png", 1, 1).animation(),
+            LEFT: image.load("ponies/paperbark/idle_left.png").spritesheet(1, 1),
+            RIGHT: image.load("ponies/paperbark/idle_right.png").spritesheet(1, 1),
         },
         "blink": {
             "framerate": 24,
-            LEFT: SpriteSheet("ponies/paperbark/blink_left.png", 5, 1).animation(),
-            RIGHT: SpriteSheet("ponies/paperbark/blink_right.png", 5, 1).animation(),
+            LEFT: image.load("ponies/paperbark/blink_left.png").spritesheet(5, 1),
+            RIGHT: image.load("ponies/paperbark/blink_right.png").spritesheet(5, 1),
         },
         "walk": {
             "framerate": 24,
-            LEFT: SpriteSheet("ponies/paperbark/walk_left.png", 16, 1).animation(),
-            RIGHT: SpriteSheet("ponies/paperbark/walk_right.png", 16, 1).animation(),
+            LEFT: image.load("ponies/paperbark/walk_left.png",).spritesheet(6, 1),
+            RIGHT: image.load("ponies/paperbark/walk_right.png",).spritesheet(6, 1),
         },
         "yawn": {
             "framerate": 24,
-            LEFT: SpriteSheet("ponies/paperbark/yawn_left.png", 42, 1).animation(),
-            RIGHT: SpriteSheet("ponies/paperbark/yawn_right.png", 42, 1).animation(),
+            LEFT: image.load("ponies/paperbark/yawn_left.png",).spritesheet(2, 1),
+            RIGHT: image.load("ponies/paperbark/yawn_right.png",).spritesheet(2, 1),
         },
         "giggle": {
             "framerate": 9,
-            LEFT: SpriteSheet("ponies/paperbark/giggle_left.png", 8, 1).animation(),
-            RIGHT: SpriteSheet("ponies/paperbark/giggle_right.png", 8, 1).animation(),
+            LEFT: image.load("ponies/paperbark/giggle_left.png").spritesheet(8, 1),
+            RIGHT: image.load("ponies/paperbark/giggle_right.png").spritesheet(8, 1),
         },
         "boop": {
             "framerate": 24,
-            LEFT: SpriteSheet("ponies/paperbark/boop_left.png", 42, 1).animation(),
-            RIGHT: SpriteSheet("ponies/paperbark/boop_right.png", 42, 1).animation(),
+            LEFT: image.load("ponies/paperbark/boop_left.png",).spritesheet(2, 1),
+            RIGHT: image.load("ponies/paperbark/boop_right.png",).spritesheet(2, 1),
         },
     }
 

@@ -39,7 +39,8 @@ def set_backlight(value = None):
 
     value = min(max(value, 0), 1)
 
-    display.backlight((value * (1 - 0.45)) + 0.45)
+    # display.backlight(value)
+    display.backlight((value * (1 - 0.1)) + 0.1)
 
     state["backlight"] = value
     save_state()

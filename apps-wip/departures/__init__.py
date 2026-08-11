@@ -27,18 +27,18 @@ def update():
         if not service["locationDetail"]["isPublicCall"]:
             continue
 
-        screen.font = rom_font.sins
+        screen.font = font.sins
         screen.pen = color.rgb(255, 255, 255)
         screen.text(f"{service["locationDetail"]["gbttBookedDeparture"][0:2]}", 0, y)
         screen.text(":", 10, y - 1)
         screen.text(f"{service["locationDetail"]["gbttBookedDeparture"][2:4]}", 13, y)
 
         screen.clip = rect(28, 0, screen.width - 72, screen.height)
-        screen.font = rom_font.match
+        screen.font = font.match
         text_overflow(f"{service["locationDetail"]["destination"][0]["description"]}", 28, y, screen.width - 72, (badge.ticks / 4000) % 1)
         screen.clip = rect(0, 0, screen.width, screen.height)
 
-        screen.font = rom_font.sins
+        screen.font = font.sins
         if "gbttBookedDeparture" in service["locationDetail"] and "realtimeDeparture" in service["locationDetail"]:
             delay_time = railway_time_to_mins(service["locationDetail"]["realtimeDeparture"]) - railway_time_to_mins(service["locationDetail"]["gbttBookedDeparture"])
 
@@ -53,13 +53,13 @@ def update():
         if i == 0:
             y += 10
 
-            screen.font = rom_font.sins
+            screen.font = font.sins
             screen.pen = color.rgb(200, 200, 200)
             screen.text(f"Calling at: ...", 0, y)
 
         y += 10
 
-    screen.font = rom_font.match
+    screen.font = font.match
     screen.pen = color.rgb(255, 66, 0)
     screen.rectangle(0, 0, 160, 10)
     screen.pen = color.rgb(255, 255, 255)

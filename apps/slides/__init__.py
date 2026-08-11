@@ -200,9 +200,6 @@ def update_slide():
     global current_slide_image, next_slide_image, state, slide_index, next_slide_time, transition_start_time, transition_end_time, transitioning, transition_id, slide_start_time
     
     if len(state["display_slides"]) <= 0:
-        if not (badge.mode() & LORES):
-            badge.mode(LORES)
-
         screen.pen = color.rgb(0, 0, 0)
         screen.clear()
 
@@ -247,24 +244,18 @@ def update_slide():
         next_slide_image = None
 
     if transitioning:
-        if not (badge.mode() & LORES):
-            badge.mode(LORES)
-
         t = (badge.ticks - transition_start_time) / (transition_end_time - transition_start_time)
         t = min(t, 1.0)
 
         if transition_style != None:
             if current_slide_image == None:
-                transition_style.render(t, None, next_slide_image["lores"])
+                transition_style.render(t, None, next_slide_image)
             else:
-                transition_style.render(t, current_slide_image["lores"], next_slide_image["lores"])
+                transition_style.render(t, current_slide_image, next_slide_image)
 
-    else:
-        if not (badge.mode() & HIRES):
-            badge.mode(HIRES)
-        
+    else:    
         if current_slide_image != None:
-            screen.blit(current_slide_image["hires"], vec2(0, 0))
+            screen.blit(current_slide_image, vec2(0, 0))
 
             if is_timer_display() and is_auto_cycle():
                 screen.pen = color.rgb(0, 0, 0)
@@ -314,16 +305,13 @@ def update_edit_mode():
 
     edit_slide_path = all_slide_paths[edit_slide_index]
 
-    if not (badge.mode() & LORES):
-        badge.mode(LORES)
-
     screen.pen = color.rgb(0, 0, 0)
     screen.clear()
 
     if not edit_slide_preview_image:
         edit_slide_preview_image = image.load(edit_slide_path)
     
-    screen.blit(edit_slide_preview_image, rect(30, 0, 100, 75))
+    screen.blit(edit_slide_preview_image, rect(60, 0, 200, 150))
 
     display_index = None
     for i, display_slide in enumerate(state["display_slides"]):
@@ -331,29 +319,23 @@ def update_edit_mode():
             display_index = i
 
     screen.pen = color.rgb(255, 255, 255)
+    screen.font = font.ignore
     
-    center_text(f"{edit_slide_path.split("/")[-1].split(".")[0]}", screen.width / 2, 75)
+    center_text(f"{edit_slide_path.split("/")[-1].split(".")[0]}", screen.width / 2, 150)
     # center_text(f"{edit_slide_index + 1} / {len(all_slide_paths)}", screen.width / 2, 86)
 
     if display_index != None:
-        center_text(f"{display_index + 1} of {len(state["display_slides"])}", screen.width / 2, 86)
+        center_text(f"{display_index + 1} of {len(state["display_slides"])}", screen.width / 2, 172)
     else:
-        center_text(f"- of {len(state["display_slides"])}", screen.width / 2, 86)
+        center_text(f"- of {len(state["display_slides"])}", screen.width / 2, 172)
     
 
 def load_slide(slide_path):
     global next_slide_image
 
     next_image = image.load(slide_path)
-    next_image_hires = image(320, 240)
-    next_image_lores = image(160, 120)
-    next_image_hires.blit(next_image, rect(0, 0, next_image_hires.width, next_image_hires.height))
-    next_image_lores.blit(next_image, rect(0, 0, next_image_lores.width, next_image_lores.height))
-    
-    next_slide_image = {
-        "hires": next_image_hires,
-        "lores": next_image_lores,
-    }
+    next_slide_image = image(320, 240)
+    next_slide_image.blit(next_image, rect(0, 0, next_slide_image.width, next_slide_image.height))
 
 def transition_to_next_slide(slide_duration, new_transition_id, transition_duration):
     global next_slide_time, transition_start_time, transition_end_time, transitioning, transition_id, transition_style

@@ -28,11 +28,11 @@ try:
 
         draw.clear()
 
-        screen.font = rom_font.teatime
+        screen.font = font.teatime
         screen.pen = color.rgb(255, 100, 100)
         draw.center_text("System Reset", screen.width / 2, 2)
         
-        screen.font = rom_font.sins
+        screen.font = font.sins
         screen.pen = color.rgb(255, 255, 255)
         draw.center_text("Release HOME and A to start", screen.width / 2, 30)
 
@@ -52,11 +52,11 @@ try:
 
             draw.clear()
 
-            screen.font = rom_font.teatime
+            screen.font = font.teatime
             screen.pen = color.rgb(50, 128, 255)
             draw.center_text("Shipping Mode", screen.width / 2, 2)
 
-            screen.font = rom_font.sins
+            screen.font = font.sins
             screen.pen = color.rgb(255, 255, 255)
             draw.center_text("Hold A and C to start badge", screen.width / 2, 30)
 
@@ -147,9 +147,9 @@ try:
                     fps = 1000 / badge.ticks_delta
 
                     if screen.width == 320:
-                        screen.font = rom_font.ignore
+                        screen.font = font.ignore
                     else:
-                        screen.font = rom_font.torch
+                        screen.font = font.torch
 
                     fps_overlay_text = f"{fps:.1f}"
                     fps_overlay_w, fps_overlay_h = screen.measure_text(fps_overlay_text)
