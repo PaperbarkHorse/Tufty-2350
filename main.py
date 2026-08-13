@@ -6,7 +6,6 @@ try:
     from badgeware import display, DEFAULT_FONT
     import machine
     import gc
-    import wifi
 
     sys.path.append("/system/libs")
     import system
@@ -50,7 +49,6 @@ try:
 
         while True:
             badge.poll()
-            wifi.tick()
 
             draw.clear()
 
