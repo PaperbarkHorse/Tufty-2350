@@ -4,6 +4,10 @@ import random
 import system
 import menu
 import toast
+import draw
+
+from slide import Slide, ImageSlide, DynamicSlide
+import renderers
 import transitions
 
 STATE_ID = "horse.paperbark.slides"
@@ -17,45 +21,15 @@ state = {
     "timer_display": False,
 }
 
-presets = [
-    {
-        "name": "Empty",
-        "display_slides": []
-    },
-    {
-        "name": "Pony Boops",
-        "display_slides": [
-            "/system/apps/gallery/images/Paperbark Boop.png",
-            "/system/apps/gallery/images/Vinyl Boop.png",
-        ]
-    },
-    {
-        "name": "Volunteer",
-        "display_slides": [
-            "/system/apps/slides/slides/Volunteer Nameplate.png",
-            "/system/apps/slides/slides/Volunteer Need a Hoof.png",
-        ]
-    },
-    {
-        "name": "Fursuit Handler",
-        "display_slides": [
-            "/system/apps/slides/slides/Fursuit Handler Nameplate.png",
-        ]
-    },
-]
-
-settings = None
-
-edit_mode = False
-
-all_slide_paths = []
-
-current_slide_image = None
-next_slide_image = None
+slides = {}
 
 slide_index = -1
-next_slide_time = 0
+current_slide = None
+next_slide = None
 slide_start_time = 0
+next_slide_time = 0
+
+edit_mode = False
 
 transitioning = False
 transition_id = None
@@ -67,13 +41,35 @@ edit_slide_index = 0
 edit_slide_preview_image = None
 
 def init():
-    global settings, presets_menu, all_slide_paths
+    global slides
 
     State.load(STATE_ID, state)
     badge.mode(HIRES)
 
+    init_settings_menu()
+
+    slides = [
+        DynamicSlide("Paperbark Clock 1", renderers.PaperbarkClock1()),
+        DynamicSlide("Paperbark Clock 2", renderers.PaperbarkClock2()),
+    ]
+
+    image_root_paths = ["/system/apps/slides/slides", "/system/apps/gallery/images"]
+    image_paths = []
+
+    for image_root_path in image_root_paths:
+        image_paths.extend(list(map(lambda path: f"{image_root_path}/{path}", filter(lambda path: path.lower().endswith(".png"), os.listdir(image_root_path)))))
+    
+    image_paths.sort()
+
+    for image_path in image_paths:
+        slides.append(ImageSlide(image_path))
+
+    all_slide_ids = list(map(lambda slide: slide.id, slides))
+    state["display_slides"] = list(filter(lambda id: id in all_slide_ids, state["display_slides"]))
+    save_state()
+
+def init_settings_menu():
     settings = menu.Menu()
-    presets_dropdown = menu.Dropdown("Preset", lambda: None, use_preset)
     transition_style_dropdown = menu.Dropdown("Style", get_transition_id, set_transition_id)
     
     settings.add_item(menu.Header("Settings"))
@@ -81,7 +77,6 @@ def init():
     settings.add_item(menu.Spacer(5))
     settings.add_item(menu.Header("Slides"))
     settings.add_item(menu.Button("Edit", lambda: set_edit_mode(True)).set_close_on_interact("all"))
-    settings.add_item(presets_dropdown)
     settings.add_item(menu.Spacer(5))
     settings.add_item(menu.Header("Playback"))
     settings.add_item(
@@ -121,26 +116,11 @@ def init():
             .add_option(2000, "Snail (2.0s)")
             .add_option(5000, "Rock (5.0s)")
     )
-
-    for preset in presets:
-        presets_dropdown.add_option(preset["display_slides"], preset["name"])
     
     for transition in transitions.all_transitions:
         transition_style_dropdown.add_option(transition.id, transition.name)
 
     system.set_settings_menu(settings)
-
-    slides_root_paths = ["/system/apps/slides/slides", "/system/apps/gallery/images"]
-    all_slide_paths = []
-
-    for slides_root_path in slides_root_paths:
-        all_slide_paths.extend(list(map(lambda path: f"{slides_root_path}/{path}", filter(lambda path: path.lower().endswith(".png"), os.listdir(slides_root_path)))))
-    
-    all_slide_paths.sort()
-
-    state["display_slides"] = list(filter(lambda display_slide: display_slide in all_slide_paths, state["display_slides"]))
-    save_state()
-
 
 def input():
     if edit_mode:
@@ -177,7 +157,7 @@ def input_slide():
         if slide_index < 0:
             slide_index = len(state["display_slides"]) - 1
 
-        load_slide(state["display_slides"][slide_index])
+        load_next_slide(state["display_slides"][slide_index])
         transition_to_next_slide(state["slide_duration"], None, 0)
 
         toast.show(f"Slide {slide_index + 1} of {len(state["display_slides"])}", toast.SHORT, toast.BOTTOM)
@@ -191,13 +171,13 @@ def input_slide():
         if slide_index >= len(state["display_slides"]):
             slide_index = 0
 
-        load_slide(state["display_slides"][slide_index])
+        load_next_slide(state["display_slides"][slide_index])
         transition_to_next_slide(state["slide_duration"], None, 0)
 
         toast.show(f"Slide {slide_index + 1} of {len(state["display_slides"])}", toast.SHORT, toast.BOTTOM)
 
 def update_slide():
-    global current_slide_image, next_slide_image, state, slide_index, next_slide_time, transition_start_time, transition_end_time, transitioning, transition_id, slide_start_time
+    global current_slide, next_slide, state, slide_index, next_slide_time, transition_start_time, transition_end_time, transitioning, transition_id, slide_start_time
     
     if len(state["display_slides"]) <= 0:
         screen.pen = color.rgb(0, 0, 0)
@@ -211,9 +191,13 @@ def update_slide():
 
     if slide_index < 0:
         slide_index = 0
+
+        if current_slide:
+            current_slide.unload()
         
-        load_slide(state["display_slides"][slide_index])
-        current_slide_image = next_slide_image
+        load_next_slide(state["display_slides"][slide_index])
+
+        current_slide = next_slide
 
         transitioning = False
         next_slide_time = badge.ticks + state["slide_duration"]
@@ -232,30 +216,36 @@ def update_slide():
             if slide_index >= len(state["display_slides"]):
                 slide_index = 0
 
-        load_slide(state["display_slides"][slide_index])
+        load_next_slide(state["display_slides"][slide_index])
         badge.poll()
 
         transition_to_next_slide(state["slide_duration"], state["transition_id"], state["transition_duration"])
 
-    if transitioning and (badge.ticks >= transition_end_time or next_slide_image == None):
+    if transitioning and (badge.ticks >= transition_end_time or next_slide == None):
+        if current_slide:
+            current_slide.on_transition_end(True)
+            current_slide.unload()
+
+        next_slide.on_transition_end(False)
+
         transitioning = False
-        current_slide_image = next_slide_image
+        current_slide = next_slide
         slide_start_time = badge.ticks
-        next_slide_image = None
+        next_slide = None
 
     if transitioning:
         t = (badge.ticks - transition_start_time) / (transition_end_time - transition_start_time)
         t = min(t, 1.0)
 
         if transition_style != None:
-            if current_slide_image == None:
-                transition_style.render(t, None, next_slide_image)
+            if current_slide == None:
+                transition_style.render(t, None, next_slide.get_transition_image())
             else:
-                transition_style.render(t, current_slide_image, next_slide_image)
+                transition_style.render(t, current_slide.get_transition_image(), next_slide.get_transition_image())
 
     else:    
-        if current_slide_image != None:
-            screen.blit(current_slide_image, vec2(0, 0))
+        if current_slide != None:
+            current_slide.render()
 
             if is_timer_display() and is_auto_cycle():
                 screen.pen = color.rgb(0, 0, 0)
@@ -271,28 +261,28 @@ def input_edit_mode():
         edit_slide_index -= 1
 
         if edit_slide_index < 0:
-            edit_slide_index = len(all_slide_paths) - 1
+            edit_slide_index = len(slides) - 1
 
-        edit_slide_preview_image = image.load(all_slide_paths[edit_slide_index])
+        edit_slide_preview_image = None
 
     if badge.pressed(BUTTON_DOWN):
         edit_slide_index += 1
 
-        if edit_slide_index >= len(all_slide_paths):
+        if edit_slide_index >= len(slides):
             edit_slide_index = 0
 
-        edit_slide_preview_image = image.load(all_slide_paths[edit_slide_index])
+        edit_slide_preview_image = None
 
     if badge.pressed(BUTTON_B):
         display_index = None
-        for i, display_slide in enumerate(state["display_slides"]):
-            if display_slide == all_slide_paths[edit_slide_index]:
+        for i, display_slide_id in enumerate(state["display_slides"]):
+            if display_slide_id == slides[edit_slide_index].id:
                 display_index = i
 
         if display_index == None:
-            state["display_slides"].append(all_slide_paths[edit_slide_index])
+            state["display_slides"].append(slides[edit_slide_index].id)
         else:
-            state["display_slides"].remove(all_slide_paths[edit_slide_index])
+            state["display_slides"].remove(slides[edit_slide_index].id)
 
         save_state()
     
@@ -303,42 +293,52 @@ def input_edit_mode():
 def update_edit_mode():
     global edit_slide_index, edit_slide_preview_image
 
-    edit_slide_path = all_slide_paths[edit_slide_index]
+    edit_slide = slides[edit_slide_index]
 
-    screen.pen = color.rgb(0, 0, 0)
-    screen.clear()
-
-    if not edit_slide_preview_image:
-        edit_slide_preview_image = image.load(edit_slide_path)
-    
-    screen.blit(edit_slide_preview_image, rect(60, 0, 200, 150))
-
-    display_index = None
-    for i, display_slide in enumerate(state["display_slides"]):
-        if display_slide == edit_slide_path:
-            display_index = i
+    draw.clear(0, 0, 0)
 
     screen.pen = color.rgb(255, 255, 255)
     screen.font = font.ignore
+
+    if not edit_slide_preview_image:
+        edit_slide_preview_image = edit_slide.get_preview_image()
+
+    if edit_slide_preview_image:
+        screen.blit(edit_slide_preview_image, rect(60, 0, 200, 150))
+    else:
+        screen.text("No preview", 60, 0)
+
+    display_index = None
+    for i, display_slide in enumerate(state["display_slides"]):
+        if display_slide == edit_slide.id:
+            display_index = i
     
-    center_text(f"{edit_slide_path.split("/")[-1].split(".")[0]}", screen.width / 2, 150)
-    # center_text(f"{edit_slide_index + 1} / {len(all_slide_paths)}", screen.width / 2, 86)
+    draw.center_text(f"{edit_slide.name}", screen.width / 2, 150)
 
     if display_index != None:
-        center_text(f"{display_index + 1} of {len(state["display_slides"])}", screen.width / 2, 172)
+        draw.center_text(f"{display_index + 1} of {len(state["display_slides"])}", screen.width / 2, 172)
     else:
-        center_text(f"- of {len(state["display_slides"])}", screen.width / 2, 172)
+        draw.center_text(f"- of {len(state["display_slides"])}", screen.width / 2, 172)
     
 
-def load_slide(slide_path):
-    global next_slide_image
+def load_next_slide(id):
+    global next_slide
 
-    next_image = image.load(slide_path)
-    next_slide_image = image(320, 240)
-    next_slide_image.blit(next_image, rect(0, 0, next_slide_image.width, next_slide_image.height))
+    next_slide = next(filter(lambda slide: slide.id == id, slides), None)
+
+    if next_slide == None:
+        raise ValueError(f"Attempt to load slide, not found: {id}")
+
+    next_slide.load()
 
 def transition_to_next_slide(slide_duration, new_transition_id, transition_duration):
     global next_slide_time, transition_start_time, transition_end_time, transitioning, transition_id, transition_style
+
+    if current_slide:
+        current_slide.on_transition_start(True)
+    
+    if next_slide:
+        next_slide.on_transition_start(False)
 
     transition_id = new_transition_id
     transition_style = transitions.by_id(transition_id)
@@ -349,6 +349,8 @@ def transition_to_next_slide(slide_duration, new_transition_id, transition_durat
 
     if hasattr(transition_style, "duration_multiplier"):
         transition_duration *= transition_style.duration_multiplier
+
+    badge.poll()
 
     next_slide_time = badge.ticks + slide_duration + transition_duration
     transition_start_time = badge.ticks
@@ -400,11 +402,6 @@ def set_transition_duration(transition_duration):
     state["transition_duration"] = transition_duration
     save_state()
 
-def use_preset(display_slides):
-    state["display_slides"] = list(filter(lambda display_slide: display_slide in all_slide_paths, display_slides))
-    save_state()
-    reset_playback()
-
 def is_auto_cycle():
     return state["auto_cycle"]
 
@@ -420,15 +417,11 @@ def set_timer_display(timer_display):
     save_state()
 
 def reset_playback():
-    global current_slide_image, next_slide_image, transitioning, next_slide_time, slide_index
+    global current_slide, next_slide, transitioning, next_slide_time, slide_index
 
     slide_index = -1
-    current_slide_image = None
-    next_slide_image = None
+    current_slide = None
+    next_slide = None
 
     transitioning = False
     next_slide_time = badge.ticks + state["slide_duration"]
-
-def center_text(text, x, y):
-    width, height = screen.measure_text(text)
-    screen.text(text, x - width / 2, y)

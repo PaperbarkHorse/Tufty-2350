@@ -17,7 +17,13 @@ state = {
     "super_dim": False,
     "shipping_mode": False,
     "network": None,
+    "timezone": "GMT"
 }
+
+MONTH_NAMES_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+MONTH_NAMES_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+DAY_NAMES_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+DAY_NAMES_LONG = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 background_image = None
 
@@ -156,11 +162,16 @@ def init_app_menu():
     app_menu.add_item(menu.Subpanel("System", system_menu))
     app_menu.add_item(menu.Button("Quit", quit_to_launcher))
 
+    timezone_dropdown = menu.Dropdown("Timezone", get_timezone, set_timezone)
+    timezone_dropdown.add_option("GMT", "GMT")
+    timezone_dropdown.add_option("BST", "BST")
+
     system_menu.add_item(menu.Header("System"))
     system_menu.add_item(menu.Button("Back", system_menu.close))
     system_menu.add_item(menu.Button("Lock input", lock_input))
     system_menu.add_item(menu.Subpanel("Brightness", menu.BacklightConfigPanel()))
     system_menu.add_item(menu.Subpanel("Network", network_menu))
+    system_menu.add_item(timezone_dropdown)
     system_menu.add_item(menu.Spacer(5))
     system_menu.add_item(menu.Header("Overlays"))
     system_menu.add_item(menu.Checkbox("FPS overlay", is_fps_overlay_enabled, set_fps_overlay))
@@ -184,6 +195,48 @@ def set_selected_network(network):
 
 def get_selected_network():
     return state["network"]
+
+# ===== Time ===== #
+def local_time():
+    year, month, day, hour, minute, second, dow = rtc.datetime()
+    timezone = get_timezone()
+
+    if timezone == "BST":
+        hour += 1
+
+    return {
+        "year": year,
+        "month": month,
+        "day": day,
+        "hour": hour,
+        "minute": minute,
+        "second": second,
+        "day_of_week": dow,
+        "timezone": timezone,
+        "hour_12": 12 if hour == 0 or hour == 12 else hour % 12,
+        "am_pm": "am" if hour < 12 else "pm",
+        "day_of_week_short": DAY_NAMES_SHORT[dow],
+        "day_of_week_long": DAY_NAMES_LONG[dow],
+        "month_short": MONTH_NAMES_SHORT[dow],
+        "month_long": MONTH_NAMES_LONG[dow],
+    }
+
+def get_timezone():
+    return state["timezone"]
+
+def set_timezone(timezone):
+    state["timezone"] = timezone
+    save_state()
+
+def ordinal(n):
+    if n == 1:
+        return f"{n}st"
+    elif n == 2:
+        return f"{n}nd"
+    elif n == 3:
+        return f"{n}rd"
+    else:
+        return f"{n}th"
 
 # ===== Init ===== #
 def init():
