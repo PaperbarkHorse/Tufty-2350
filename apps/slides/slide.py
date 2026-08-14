@@ -1,10 +1,18 @@
+from badgeware import State
 from renderer import Renderer
+
+SLIDES_STATE_ID = "horse.paperbark.slides.settings"
+
+slides_state = {}
+State.load(SLIDES_STATE_ID, slides_state)
 
 class Slide:
     def __init__(self, id):
         self.id = id
         self.name = id
         self.loaded = False
+        self.state = {}
+        self.load_state()
 
     def load(self):
         self.loaded = True
@@ -26,6 +34,22 @@ class Slide:
 
     def get_preview_image(self):
         return None
+
+    def init_settings_menu(self):
+        return None
+
+    def save_state(self):
+        slides_state[self.id] = self.state
+        State.save(SLIDES_STATE_ID, slides_state)
+
+    def load_state(self):
+        State.load(SLIDES_STATE_ID, slides_state)
+
+        if self.id in slides_state:
+            self.state = slides_state[self.id]
+        else:
+            self.state = {}
+            self.save_state()
 
 class ImageSlide(Slide):
     def __init__(self, image_path):
@@ -69,6 +93,7 @@ class DynamicSlide(Slide):
         super().__init__(id)
         self.renderer = renderer
         self.transition_image = None
+        renderer.slide = self
 
     def load(self):
         super().load()
@@ -109,3 +134,6 @@ class DynamicSlide(Slide):
         preview = image(screen.width, screen.height)
         self.renderer.render_to(preview)
         return preview
+
+    def init_settings_menu(self):
+        return self.renderer.init_settings_menu()

@@ -1,7 +1,7 @@
 class Renderer:
 
     def __init__(self):
-        pass
+        self.slide = None
 
     def on_load(self):
         pass
@@ -17,3 +17,6 @@ class Renderer:
 
     def render_to(self, target):
         pass
+
+    def init_settings_menu(self):
+        return None

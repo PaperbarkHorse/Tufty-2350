@@ -1,2 +1,1 @@
-from renderers.paperbark_clock_1 import PaperbarkClock1
-from renderers.paperbark_clock_2 import PaperbarkClock2
+from renderers.clock import ClockRenderer

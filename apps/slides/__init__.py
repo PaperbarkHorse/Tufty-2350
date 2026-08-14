@@ -46,11 +46,8 @@ def init():
     State.load(STATE_ID, state)
     badge.mode(HIRES)
 
-    init_settings_menu()
-
     slides = [
-        DynamicSlide("Paperbark Clock 1", renderers.PaperbarkClock1()),
-        DynamicSlide("Paperbark Clock 2", renderers.PaperbarkClock2()),
+        DynamicSlide("Clock", renderers.ClockRenderer()),
     ]
 
     image_root_paths = ["/system/apps/slides/slides", "/system/apps/gallery/images"]
@@ -68,6 +65,8 @@ def init():
     state["display_slides"] = list(filter(lambda id: id in all_slide_ids, state["display_slides"]))
     save_state()
 
+    init_settings_menu()
+
 def init_settings_menu():
     settings = menu.Menu()
     transition_style_dropdown = menu.Dropdown("Style", get_transition_id, set_transition_id)
@@ -75,10 +74,8 @@ def init_settings_menu():
     settings.add_item(menu.Header("Settings"))
     settings.add_item(menu.Button("Back", settings.close))
     settings.add_item(menu.Spacer(5))
-    settings.add_item(menu.Header("Slides"))
-    settings.add_item(menu.Button("Edit", lambda: set_edit_mode(True)).set_close_on_interact("all"))
-    settings.add_item(menu.Spacer(5))
     settings.add_item(menu.Header("Playback"))
+    settings.add_item(menu.Button("Edit Slides", lambda: set_edit_mode(True)).set_close_on_interact("all"))
     settings.add_item(
         menu.Dropdown("Duration", get_slide_duration, set_slide_duration)
             .add_option(0, "Instant")
@@ -119,6 +116,15 @@ def init_settings_menu():
     
     for transition in transitions.all_transitions:
         transition_style_dropdown.add_option(transition.id, transition.name)
+
+    settings.add_item(menu.Spacer(5))
+    settings.add_item(menu.Header("Slides"))
+    
+    for slide in slides:
+        slide_settings = slide.init_settings_menu()
+
+        if slide_settings:
+            settings.add_item(menu.Subpanel(slide.name, slide_settings))
 
     system.set_settings_menu(settings)
 
@@ -243,15 +249,22 @@ def update_slide():
             else:
                 transition_style.render(t, current_slide.get_transition_image(), next_slide.get_transition_image())
 
+        if is_timer_display() and is_auto_cycle():
+            screen.pen = color.rgb(0, 0, 0)
+            screen.rectangle(0, screen.height - 3, screen.width, 3)
+            
+            screen.pen = color.rgb(255, 255, 255, round((1 - t) * 255))
+            screen.rectangle(0, screen.height - 2, screen.width, 2)
+
     else:    
         if current_slide != None:
             current_slide.render()
 
-            if is_timer_display() and is_auto_cycle():
+            if is_timer_display() and is_auto_cycle() and next_slide_time - slide_start_time > 0:
                 screen.pen = color.rgb(0, 0, 0)
-                screen.rectangle(0, screen.height - 2, screen.width, 2)
+                screen.rectangle(0, screen.height - 3, screen.width, 3)
 
-                screen.pen = color.rgb(200, 200, 200)
+                screen.pen = color.rgb(255, 255, 255)
                 screen.rectangle(0, screen.height - 2, screen.width * (1 - ((next_slide_time - badge.ticks) / (next_slide_time - slide_start_time))), 2)
 
 def input_edit_mode():
