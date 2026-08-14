@@ -317,21 +317,28 @@ def update_edit_mode():
         edit_slide_preview_image = edit_slide.get_preview_image()
 
     if edit_slide_preview_image:
-        screen.blit(edit_slide_preview_image, rect(60, 0, 200, 150))
+        screen.blit(edit_slide_preview_image, rect(40, 0, 240, 180))
     else:
-        screen.text("No preview", 60, 0)
+        draw.center_text("No preview", screen.width / 2, 79)
 
     display_index = None
     for i, display_slide in enumerate(state["display_slides"]):
         if display_slide == edit_slide.id:
             display_index = i
     
-    draw.center_text(f"{edit_slide.name}", screen.width / 2, 150)
+    draw.center_text(f"{edit_slide.name}", screen.width / 2, 180)
 
     if display_index != None:
-        draw.center_text(f"{display_index + 1} of {len(state["display_slides"])}", screen.width / 2, 172)
+        draw.center_text(f"{display_index + 1} of {len(state["display_slides"])}", screen.width / 2, 180 + 22)
     else:
-        draw.center_text(f"- of {len(state["display_slides"])}", screen.width / 2, 172)
+        draw.center_text(f"- of {len(state["display_slides"])}", screen.width / 2, 180 + 22)
+
+    if len(slides) >= 2:
+        screen.pen = color.rgb(50, 50, 50)
+        screen.rectangle(screen.width - 4, 0, 4, screen.height)
+
+        screen.pen = color.rgb(255, 255, 255)
+        screen.rectangle(screen.width - 4, round((edit_slide_index / (len(slides) - 1)) * (screen.height - 30)), 4, 30)
     
 
 def load_next_slide(id):
