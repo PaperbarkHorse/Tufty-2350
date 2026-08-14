@@ -148,7 +148,7 @@ def input_slide():
         else:
             toast.show("Auto cycle OFF", toast.SHORT, toast.BOTTOM)
     
-    if badge.pressed(BUTTON_UP) and len(state["display_slides"]) > 0:
+    if badge.pressed(BUTTON_UP) and len(state["display_slides"]) > 1:
         if is_auto_cycle():
             set_auto_cycle(False)
 
@@ -162,7 +162,7 @@ def input_slide():
 
         toast.show(f"Slide {slide_index + 1} of {len(state["display_slides"])}", toast.SHORT, toast.BOTTOM)
     
-    if badge.pressed(BUTTON_DOWN) and len(state["display_slides"]) > 0:
+    if badge.pressed(BUTTON_DOWN) and len(state["display_slides"]) > 1:
         if is_auto_cycle():
             set_auto_cycle(False)
 
