@@ -22,6 +22,8 @@ import transitions.barn_door_random as barn_door_random
 import transitions.explosion as explosion
 import transitions.shatter as shatter
 import transitions.unshatter as unshatter
+import transitions.drop as drop
+import transitions.jumpscare as jumpscare
 import transitions.random as random
 import transitions.chaotic as chaotic
 
@@ -50,6 +52,8 @@ all_transitions = [
     explosion,
     shatter,
     unshatter,
+    drop,
+    jumpscare,
     random,
     chaotic,
 ]

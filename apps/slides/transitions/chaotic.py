@@ -4,6 +4,8 @@ import transitions.barn_door_random as barn_door_random
 import transitions.explosion as explosion
 import transitions.shatter as shatter
 import transitions.unshatter as unshatter
+import transitions.drop as drop
+import transitions.jumpscare as jumpscare
 
 id = "chaotic"
 name = "Chaotic"
@@ -15,4 +17,6 @@ random_group = [
     explosion,
     shatter,
     unshatter,
+    drop,
+    jumpscare,
 ]
