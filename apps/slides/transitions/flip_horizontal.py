@@ -1,7 +1,11 @@
 id = "flip_horizontal"
 name = "Flip (Horizontal)"
 
+smooth = tween(0, 1, easing=tween.SINE_INOUT)
+
 def render(t, prev, next):
+    t = smooth.at(t)
+    
     if t < 0.5:
         subdelta = t * 2
 

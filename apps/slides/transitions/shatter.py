@@ -14,7 +14,7 @@ def render(t, prev, next):
     screen.blit(next, vec2(0, 0))
 
     if prev != None:
-        gravity_offset_y = t * t * (screen.height + 40)
+        gravity_offset_y = t * t * (screen.height + 60)
 
         for i in range(0, x_parts):
             for j in range(0, y_parts):
@@ -22,8 +22,8 @@ def render(t, prev, next):
                 x = i * part_width
                 y = j * part_height
 
-                random_offset_x = math.cos(n) * 40 * t
-                random_offset_y = math.sin(n) * 40 * t
+                random_offset_x = math.cos(n) * 60 * t
+                random_offset_y = math.sin(n) * 60 * t
 
                 screen.blit(prev, rect(x, y, part_width, part_height), rect(x + random_offset_x, y + random_offset_y + gravity_offset_y, part_width, part_height))
 
