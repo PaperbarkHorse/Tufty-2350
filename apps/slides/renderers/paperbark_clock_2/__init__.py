@@ -21,7 +21,8 @@ class PaperbarkClock2(Renderer):
 
         now = system.local_time()
 
-        time_line = f"{now["hour"]:02}:{now["minute"]:02}:{now["second"]:02}"
+        # time_line = f"{now["hour"]:02}:{now["minute"]:02}:{now["second"]:02}"
+        time_line = f"{now["hour_12"]}:{now["minute"]:02}{now["am_pm"]}"
         date_line = f"{now["day_of_week_short"]} {system.ordinal(now["day"])} {now["month_long"]} {now["year"]}"
 
         target.font = font.ignore
