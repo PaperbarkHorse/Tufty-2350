@@ -59,10 +59,10 @@ class NetworkMenu(Menu):
         rtc.time_from_ntp()
 
     def get_time(self):
-        year, month, day, hour, minute, second, dow = rtc.datetime()
-        return f"{hour:02}:{minute:02}:{second:02}"
+        now = system.local_time()
+        return f"{now["hour"]:02}:{now["minute"]:02}:{now["second"]:02}"
 
     def get_date(self):
-        year, month, day, hour, minute, second, dow = rtc.datetime()
-        return f"{day} {MONTHS[month - 1]} {year}"
+        now = system.local_time()
+        return f"{now["day"]} {MONTHS[now["month"] - 1]} {now["year"]}"
         
