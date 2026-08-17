@@ -19,6 +19,7 @@ state = {
     "transition_id": "fade",
     "auto_cycle": True,
     "timer_display": False,
+    "timer_style": "thin_bar",
 }
 
 slides = {}
@@ -97,7 +98,14 @@ def init_settings_menu():
             .add_option("random", "Random")
     )
     settings.add_item(menu.Checkbox("Auto Cycle", is_auto_cycle, set_auto_cycle))
-    settings.add_item(menu.Checkbox("Timer", is_timer_display, set_timer_display))
+    settings.add_item(menu.Spacer(5))
+    settings.add_item(menu.Header("Timer"))
+    settings.add_item(menu.Checkbox("Show", is_timer_display, set_timer_display))
+    settings.add_item(
+            menu.Dropdown("Style", get_timer_style, set_timer_style)
+                .add_option("thin_bar", "Thin bar")
+                .add_option("ad_break", "Ad break")
+        )
     settings.add_item(menu.Spacer(5))
     settings.add_item(menu.Header("Transition"))
     settings.add_item(transition_style_dropdown)
@@ -250,22 +258,41 @@ def update_slide():
                 transition_style.render(t, current_slide.get_transition_image(), next_slide.get_transition_image())
 
         if is_timer_display() and is_auto_cycle():
-            screen.pen = color.rgb(0, 0, 0)
-            screen.rectangle(0, screen.height - 3, screen.width, 3)
-            
-            screen.pen = color.rgb(255, 255, 255, round((1 - t) * 255))
-            screen.rectangle(0, screen.height - 2, screen.width, 2)
+            if get_timer_style() == "thin_bar":
+                screen.pen = color.rgb(0, 0, 0)
+                screen.rectangle(0, screen.height - 3, screen.width, 3)
+                
+                screen.pen = color.rgb(255, 255, 255, round((1 - t) * 255))
+                screen.rectangle(0, screen.height - 2, screen.width, 2)
 
     else:    
         if current_slide != None:
             current_slide.render()
 
             if is_timer_display() and is_auto_cycle() and next_slide_time - slide_start_time > 0:
-                screen.pen = color.rgb(0, 0, 0)
-                screen.rectangle(0, screen.height - 3, screen.width, 3)
+                if get_timer_style() == "thin_bar":
+                    screen.pen = color.rgb(0, 0, 0)
+                    screen.rectangle(0, screen.height - 3, screen.width, 3)
 
-                screen.pen = color.rgb(255, 255, 255)
-                screen.rectangle(0, screen.height - 2, screen.width * (1 - ((next_slide_time - badge.ticks) / (next_slide_time - slide_start_time))), 2)
+                    screen.pen = color.rgb(255, 255, 255)
+                    screen.rectangle(0, screen.height - 2, screen.width * (1 - ((next_slide_time - badge.ticks) / (next_slide_time - slide_start_time))), 2)
+
+                elif get_timer_style() == "ad_break" and next_slide_time - badge.ticks < 3000:
+                    prev_clip = screen.clip
+
+                    ad_break_t1 = (badge.ticks % 1000) / 1000
+                    ad_break_t2 = (ad_break_t1 + 0.5) % 1
+
+                    screen.pen = color.rgb(0, 0, 0)
+                    screen.rectangle(screen.width - 45, 5, 40, 20)
+
+                    screen.clip = rect(screen.width - 45, 5, 40, 20)
+                    
+                    screen.pen = color.rgb(255, 255, 255)
+                    screen.rectangle(round(screen.width - 65 + (ad_break_t1 * 60)), 5, 13, 20)
+                    screen.rectangle(round(screen.width - 65 + (ad_break_t2 * 60)), 5, 13, 20)
+
+                    screen.clip = prev_clip
 
 def input_edit_mode():
     global edit_slide_index, edit_slide_preview_image
@@ -434,6 +461,13 @@ def is_timer_display():
 
 def set_timer_display(timer_display):
     state["timer_display"] = timer_display
+    save_state()
+
+def get_timer_style():
+    return state["timer_style"]
+
+def set_timer_style(timer_style):
+    state["timer_style"] = timer_style
     save_state()
 
 def reset_playback():
