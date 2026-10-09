@@ -5,7 +5,7 @@ animations = [
         "hires": False,
         "sprites": [
             {
-                "path": "animations/Vinyl Bop.png",
+                "path": "/system/assets/animations/Vinyl Bop.png",
                 "width": 12,
                 "height": 1,
                 "frames": 12,
@@ -18,7 +18,7 @@ animations = [
         "hires": False,
         "sprites": [
             {
-                "path": "animations/Vinyl Party.png",
+                "path": "/system/assets/animations/Vinyl Party.png",
                 "width": 12,
                 "height": 2,
                 "frames": 24,
@@ -31,7 +31,7 @@ animations = [
         "hires": False,
         "sprites": [
             {
-                "path": "animations/Flutter Bop.png",
+                "path": "/system/assets/animations/Flutter Bop.png",
                 "width": 12,
                 "height": 4,
                 "frames": 38,
@@ -39,12 +39,12 @@ animations = [
         ],
     },
     {
-        "name": "Flutter Bop",
+        "name": "Flutter Dance",
         "framerate": 24,
         "hires": False,
         "sprites": [
             {
-                "path": "animations/Flutter Dance.png",
+                "path": "/system/assets/animations/Flutter Dance.png",
                 "width": 12,
                 "height": 3,
                 "frames": 31,
@@ -57,7 +57,7 @@ animations = [
         "hires": False,
         "sprites": [
             {
-                "path": "animations/Card Trix.png",
+                "path": "/system/assets/animations/Card Trix.png",
                 "width": 12,
                 "height": 4,
                 "frames": 40,
@@ -70,7 +70,7 @@ animations = [
         "hires": False,
         "sprites": [
             {
-                "path": "animations/Funky Town.png",
+                "path": "/system/assets/animations/Funky Town.png",
                 "width": 12,
                 "height": 3,
                 "frames": 30,
@@ -83,7 +83,7 @@ animations = [
         "hires": False,
         "sprites": [
             {
-                "path": "animations/Plink.png",
+                "path": "/system/assets/animations/Plink.png",
                 "width": 12,
                 "height": 5,
                 "frames": 60,

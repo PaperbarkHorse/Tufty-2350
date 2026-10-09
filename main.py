@@ -8,6 +8,7 @@ try:
     import gc
 
     sys.path.append("/system/libs")
+    sys.path.append("/system/assets")
     import system
     import menu
     import toast

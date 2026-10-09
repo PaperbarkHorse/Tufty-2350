@@ -6,7 +6,7 @@ import menu
 import toast
 import draw
 
-from slide import Slide, ImageSlide, DynamicSlide
+from slide import Slide, ImageSlide, DynamicSlide, AnimationSlide
 import renderers
 import transitions
 
@@ -48,7 +48,7 @@ def init():
     badge.mode(HIRES)
 
     slides = [
-        DynamicSlide("Clock", renderers.ClockRenderer()),
+        DynamicSlide("Clock", renderers.ClockRenderer())
     ]
 
     image_root_paths = ["/system/apps/slides/slides", "/system/apps/gallery/images"]
@@ -61,6 +61,14 @@ def init():
 
     for image_path in image_paths:
         slides.append(ImageSlide(image_path))
+
+    try:
+        animations = __import__("animations")
+
+        for animation in animations.animations:
+            slides.append(AnimationSlide(animation))
+    except Exception as e:
+        raise e
 
     all_slide_ids = list(map(lambda slide: slide.id, slides))
     state["display_slides"] = list(filter(lambda id: id in all_slide_ids, state["display_slides"]))
