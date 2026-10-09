@@ -24,6 +24,7 @@ MONTH_NAMES_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Se
 MONTH_NAMES_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 DAY_NAMES_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 DAY_NAMES_LONG = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+DAYS_IN_MONTHS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
 background_image = None
 
@@ -201,8 +202,25 @@ def local_time():
     year, month, day, hour, minute, second, dow = rtc.datetime()
     timezone = get_timezone()
 
+    tz_offset_hours = 0
+
     if timezone == "BST":
-        hour += 1
+        tz_offset_hours = 1
+
+    hour += tz_offset_hours
+
+    if hour > 23:
+        hour = 0
+        day += 1
+
+    if day > DAYS_IN_MONTHS[month]:
+        day = 1
+        month += 1
+
+    if month > 12:
+        month = 1
+        year += 1
+
 
     return {
         "year": year,
@@ -217,8 +235,8 @@ def local_time():
         "am_pm": "am" if hour < 12 else "pm",
         "day_of_week_short": DAY_NAMES_SHORT[dow],
         "day_of_week_long": DAY_NAMES_LONG[dow],
-        "month_short": MONTH_NAMES_SHORT[dow],
-        "month_long": MONTH_NAMES_LONG[dow],
+        "month_short": MONTH_NAMES_SHORT[month],
+        "month_long": MONTH_NAMES_LONG[month],
     }
 
 def get_timezone():
