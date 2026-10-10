@@ -210,12 +210,16 @@ def local_time():
     hour += tz_offset_hours
 
     if hour > 23:
-        hour = 0
+        hour -= 24
         day += 1
+        dow += 1
 
     if day > DAYS_IN_MONTHS[month]:
         day = 1
         month += 1
+
+    if dow >= 7:
+        dow = 0
 
     if month > 12:
         month = 1
