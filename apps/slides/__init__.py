@@ -48,7 +48,8 @@ def init():
     badge.mode(HIRES)
 
     slides = [
-        DynamicSlide("Clock", renderers.ClockRenderer())
+        DynamicSlide("Clock", renderers.ClockRenderer()),
+        DynamicSlide("Festive", renderers.FestiveRenderer()),
     ]
 
     image_root_paths = ["/system/apps/slides/slides", "/system/apps/gallery/images"]
