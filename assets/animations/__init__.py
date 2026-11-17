@@ -90,4 +90,17 @@ animations = [
             },
         ],
     },
+    {
+        "name": "Paperbark Happy Wag",
+        "framerate": 15,
+        "hires": False,
+        "sprites": [
+            {
+                "path": "/system/assets/animations/Paperbark Happy Wag.png",
+                "width": 2,
+                "height": 2,
+                "frames": 4,
+            },
+        ],
+    },
 ]
